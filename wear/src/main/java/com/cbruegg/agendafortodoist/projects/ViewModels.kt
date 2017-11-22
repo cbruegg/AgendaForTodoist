@@ -3,13 +3,13 @@ package com.cbruegg.agendafortodoist.projects
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.ViewModel
 import com.cbruegg.agendafortodoist.shared.ProjectDto
-import com.cbruegg.agendafortodoist.shared.todoist
+import com.cbruegg.agendafortodoist.shared.TodoistApi
 import com.cbruegg.agendafortodoist.util.MutableLiveData
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import ru.gildor.coroutines.retrofit.await
 
-class ProjectsViewModel : ViewModel() {
+class ProjectsViewModel(private val todoist: TodoistApi) : ViewModel() {
 
     private val _projectViewModels = MutableLiveData(emptyList<ProjectViewModel>())
     val projectViewModels: LiveData<List<ProjectViewModel>> = _projectViewModels

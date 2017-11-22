@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.ProgressBar
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
+import com.cbruegg.agendafortodoist.shared.todoist
 import com.cbruegg.agendafortodoist.tasks.newTasksActivityIntent
 import com.cbruegg.agendafortodoist.util.CenterScrollLayoutCallback
 import com.cbruegg.agendafortodoist.util.ColorScaleListener
@@ -55,7 +56,7 @@ class ProjectsActivity : WearableActivity() {
         projectList.isEdgeItemsCenteringEnabled = true
         projectList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
 
-        val viewModel = viewModel { ProjectsViewModel() }
+        val viewModel = viewModel { ProjectsViewModel(todoist) }
         viewModel.projectViewModels.observe(this) {
             adapter.data = it
             adapter.notifyDataSetChanged()

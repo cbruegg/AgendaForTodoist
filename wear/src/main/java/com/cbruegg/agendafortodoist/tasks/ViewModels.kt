@@ -2,14 +2,14 @@ package com.cbruegg.agendafortodoist.tasks
 
 import android.arch.lifecycle.ViewModel
 import com.cbruegg.agendafortodoist.shared.TaskDto
-import com.cbruegg.agendafortodoist.shared.todoist
+import com.cbruegg.agendafortodoist.shared.TodoistApi
 import com.cbruegg.agendafortodoist.util.LiveData
 import com.cbruegg.agendafortodoist.util.MutableLiveData
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import ru.gildor.coroutines.retrofit.await
 
-class TasksViewModel(val projectId: Long) : ViewModel() {
+class TasksViewModel(val projectId: Long, private val todoist: TodoistApi) : ViewModel() {
 
     private val _taskViewModels = MutableLiveData(emptyList<TaskViewModel>())
     val taskViewModels: LiveData<List<TaskViewModel>> = _taskViewModels

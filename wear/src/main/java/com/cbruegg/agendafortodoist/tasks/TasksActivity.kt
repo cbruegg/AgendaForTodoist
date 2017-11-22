@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.ProgressBar
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
+import com.cbruegg.agendafortodoist.shared.todoist
 import com.cbruegg.agendafortodoist.util.CenterScrollLayoutCallback
 import com.cbruegg.agendafortodoist.util.ColorScaleListener
 import com.cbruegg.agendafortodoist.util.ScaleListener
@@ -63,7 +64,7 @@ class TasksActivity : WearableActivity() {
         tasksList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
 
         val viewModel = viewModel {
-            TasksViewModel(intent.extras.getLong(EXTRA_PROJECT_ID))
+            TasksViewModel(intent.extras.getLong(EXTRA_PROJECT_ID), todoist)
         }
 
         viewModel.taskViewModels.observe(this) {
