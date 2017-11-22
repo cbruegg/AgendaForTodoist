@@ -60,9 +60,6 @@ class ColorScaleListener(
         val max = Math.max(distanceToCenter, 0.6f) // We don't know how far this can go off-center
         val progress = (distanceToCenter) / max
 
-        if (((child as LinearLayout).getChildAt(0) as TextView).text == "Uni")
-            println("$distanceToCenter\t$max\t$progress")
-
         val interpolated = FloatArray(3) { fromHsv[it] + ((toHsv[it] - fromHsv[it]) * progress) }
         val newColor = Color.HSVToColor(interpolated)
         textViewSelector(child).setTextColor(newColor)
