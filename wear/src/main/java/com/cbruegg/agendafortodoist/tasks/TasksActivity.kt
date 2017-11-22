@@ -56,7 +56,7 @@ class TasksActivity : WearableActivity() {
                 }
         ))
 
-        val adapter = TasksAdapter(emptyList())
+        val adapter = TasksAdapter(emptyList(), this)
         val tasksList = findViewById<WearableRecyclerView>(R.id.tasks)
         val progressBar = findViewById<ProgressBar>(R.id.tasks_progress)
         val bigMessage = findViewById<TextView>(R.id.tasks_big_message)

@@ -40,7 +40,8 @@ class TasksViewModel(val projectId: Long, private val todoist: TodoistApi) : Vie
 
 data class TaskViewModel(
         val content: String,
-        val id: Long
+        val id: Long,
+        val strikethrough: LiveData<Boolean>
 ) : ViewModel()
 
-fun TaskViewModel(taskDto: TaskDto) = TaskViewModel(taskDto.content, taskDto.id)
+fun TaskViewModel(taskDto: TaskDto) = TaskViewModel(taskDto.content, taskDto.id, LiveData(taskDto.isCompleted))
