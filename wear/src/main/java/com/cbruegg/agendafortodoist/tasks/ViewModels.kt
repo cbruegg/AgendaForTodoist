@@ -17,13 +17,17 @@ class TasksViewModel(val projectId: Long) : ViewModel() {
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
+    private val _noTasks = MutableLiveData(false)
+    val noTasks: LiveData<Boolean> = _noTasks
+
     fun onCreate() {
         launch(UI) {
             _isLoading.data = true
             val tasks = todoist.tasks(projectId).await()
             val taskVms = tasks.map { TaskViewModel(it) }
-            _taskViewModels.data = taskVms
             _isLoading.data = false
+            _taskViewModels.data = taskVms
+            _noTasks.data = taskVms.isEmpty()
         }
     }
 }

@@ -57,6 +57,7 @@ class TasksActivity : WearableActivity() {
         val adapter = TasksAdapter(emptyList())
         val tasksList = findViewById<WearableRecyclerView>(R.id.tasks)
         val progressBar = findViewById<ProgressBar>(R.id.tasks_progress)
+        val noTasks = findViewById<View>(R.id.tasks_no_tasks)
         tasksList.adapter = adapter
         tasksList.isEdgeItemsCenteringEnabled = true
         tasksList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
@@ -71,6 +72,9 @@ class TasksActivity : WearableActivity() {
         }
         viewModel.isLoading.observe(this) {
             progressBar.visibility = if (it) View.VISIBLE else View.GONE
+        }
+        viewModel.noTasks.observe(this) {
+            noTasks.visibility = if (it) View.VISIBLE else View.GONE
         }
         viewModel.onCreate()
     }

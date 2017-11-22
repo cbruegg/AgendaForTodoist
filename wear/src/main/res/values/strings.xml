@@ -7,4 +7,5 @@
     <string name="hello_world">Hello Square World!</string>
     <string name="title_activity_projects">ProjectsActivity</string>
     <string name="title_activity_tasks">TasksActivity</string>
+    <string name="no_tasks">No tasks.</string>
 </resources>

@@ -10,6 +10,14 @@
     tools:context="com.cbruegg.agendafortodoist.tasks.TasksActivity"
     tools:deviceIds="wear">
 
+    <TextView
+        android:id="@+id/tasks_no_tasks"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="@string/no_tasks"
+        android:textSize="18sp" />
+
     <ProgressBar
         android:id="@+id/tasks_progress"
         android:layout_width="match_parent"
