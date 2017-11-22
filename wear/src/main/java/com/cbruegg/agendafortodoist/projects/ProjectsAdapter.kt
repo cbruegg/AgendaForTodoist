@@ -9,7 +9,8 @@ import android.widget.TextView
 import com.cbruegg.agendafortodoist.R
 
 class ProjectsAdapter(
-        var data: List<ProjectViewModel>
+        var data: List<ProjectViewModel>,
+        private val onClick: (ProjectViewModel) -> Unit = {}
 ) : RecyclerView.Adapter<ProjectViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
@@ -18,6 +19,10 @@ class ProjectsAdapter(
 
     override fun onBindViewHolder(holder: ProjectViewHolder, position: Int) {
         val project = data[position]
+
+        holder.itemView.setOnClickListener {
+            onClick(project)
+        }
 
         @SuppressLint("SetTextI18n")
         holder.nameView.text = project.indentPrefix + project.name

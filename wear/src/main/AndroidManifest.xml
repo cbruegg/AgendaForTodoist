@@ -25,7 +25,8 @@
 
         <activity
             android:name=".MainActivity"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -35,13 +36,11 @@
         <activity
             android:name=".projects.ProjectsActivity"
             android:label="@string/title_activity_projects"
-            android:theme="@style/AppTheme">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:theme="@style/AppTheme" />
+        <activity
+            android:name=".tasks.TasksActivity"
+            android:label="@string/title_activity_tasks"
+            android:theme="@style/AppTheme" />
     </application>
 
 </manifest>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.wear.widget.WearableRecyclerView android:id="@+id/tasks"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/dark_grey"
+    android:padding="@dimen/inner_frame_layout_padding"
+    android:scrollbars="vertical"
+    app:boxedEdges="all"
+    app:circular_scrolling_gesture_enabled="true"
+    tools:context="com.cbruegg.agendafortodoist.tasks.TasksActivity"
+    tools:deviceIds="wear" />
