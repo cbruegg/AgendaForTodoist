@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.wear.widget.WearableRecyclerView android:id="@+id/projects"
+
+<FrameLayout android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -7,8 +8,25 @@
     android:layout_height="match_parent"
     android:background="@color/activity_background"
     android:padding="@dimen/inner_frame_layout_padding"
-    android:scrollbars="vertical"
-    app:boxedEdges="all"
-    app:circular_scrolling_gesture_enabled="true"
     tools:context="com.cbruegg.agendafortodoist.projects.ProjectsActivity"
-    tools:deviceIds="wear" />
+    tools:deviceIds="wear">
+
+    <ProgressBar
+        android:id="@+id/projects_progress"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+    <android.support.wear.widget.WearableRecyclerView
+        android:id="@+id/projects"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical"
+        app:boxedEdges="all"
+        app:circular_scrolling_gesture_enabled="true"
+        tools:context="com.cbruegg.agendafortodoist.projects.ProjectsActivity"
+        tools:deviceIds="wear" />
+
+
+</FrameLayout>

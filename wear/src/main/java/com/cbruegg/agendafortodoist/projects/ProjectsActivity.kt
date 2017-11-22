@@ -5,19 +5,16 @@ import android.os.Bundle
 import android.support.wear.ambient.AmbientMode
 import android.support.wear.widget.WearableLinearLayoutManager
 import android.support.wear.widget.WearableRecyclerView
+import android.view.View
+import android.widget.ProgressBar
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
-import com.cbruegg.agendafortodoist.shared.todoist
 import com.cbruegg.agendafortodoist.tasks.newTasksActivityIntent
 import com.cbruegg.agendafortodoist.util.CenterScrollLayoutCallback
 import com.cbruegg.agendafortodoist.util.ColorScaleListener
-import com.cbruegg.agendafortodoist.util.MutableLiveData
 import com.cbruegg.agendafortodoist.util.ScaleListener
 import com.cbruegg.agendafortodoist.util.observe
 import com.cbruegg.agendafortodoist.util.viewModel
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import ru.gildor.coroutines.retrofit.await
 
 class ProjectsActivity : WearableActivity() {
 
@@ -25,17 +22,17 @@ class ProjectsActivity : WearableActivity() {
         ambientCallbackDelegate = object : AmbientMode.AmbientCallback() {
             override fun onExitAmbient() {
                 super.onExitAmbient()
-                projectList.setBackgroundResource(R.color.activity_background)
+                rootView.setBackgroundResource(R.color.activity_background)
             }
 
             override fun onEnterAmbient(ambientDetails: Bundle?) {
                 super.onEnterAmbient(ambientDetails)
-                projectList.setBackgroundResource(android.R.color.black)
+                rootView.setBackgroundResource(android.R.color.black)
             }
         }
     }
 
-    private val projectList by lazy { findViewById<WearableRecyclerView>(R.id.projects) }
+    private val rootView by lazy { findViewById<View>(R.id.root) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,23 +49,21 @@ class ProjectsActivity : WearableActivity() {
         val adapter = ProjectsAdapter(emptyList()) {
             startActivity(newTasksActivityIntent(this, it.id))
         }
+        val projectList = findViewById<WearableRecyclerView>(R.id.projects)
+        val progressBar = findViewById<ProgressBar>(R.id.projects_progress)
         projectList.adapter = adapter
         projectList.isEdgeItemsCenteringEnabled = true
         projectList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
 
-        val viewModel = viewModel {
-            ProjectsViewModel(MutableLiveData(emptyList()))
-        }
+        val viewModel = viewModel { ProjectsViewModel() }
         viewModel.projectViewModels.observe(this) {
             adapter.data = it
             adapter.notifyDataSetChanged()
         }
-
-        launch(UI) {
-            val projects = todoist.projects().await()
-            val projectVms = projects.map { ProjectViewModel(it) }
-            viewModel.projectViewModels.data = projectVms
+        viewModel.isLoading.observe(this) {
+            progressBar.visibility = if (it) View.VISIBLE else View.GONE
         }
+        viewModel.onCreate()
     }
 }
 

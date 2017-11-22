@@ -1,12 +1,34 @@
 package com.cbruegg.agendafortodoist.projects
 
+import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.ViewModel
-import com.cbruegg.agendafortodoist.util.MutableLiveData
 import com.cbruegg.agendafortodoist.shared.ProjectDto
+import com.cbruegg.agendafortodoist.shared.todoist
+import com.cbruegg.agendafortodoist.util.MutableLiveData
+import kotlinx.coroutines.experimental.android.UI
+import kotlinx.coroutines.experimental.launch
+import ru.gildor.coroutines.retrofit.await
 
-data class ProjectsViewModel(
-        val projectViewModels: MutableLiveData<List<ProjectViewModel>>
-) : ViewModel()
+class ProjectsViewModel : ViewModel() {
+
+    private val _projectViewModels = MutableLiveData(emptyList<ProjectViewModel>())
+    val projectViewModels: LiveData<List<ProjectViewModel>> = _projectViewModels
+
+    private val _isLoading = MutableLiveData(false)
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    fun onCreate() {
+        launch(UI) {
+            _isLoading.data = true
+
+            val projects = todoist.projects().await()
+            val projectVms = projects.map { ProjectViewModel(it) }
+            _projectViewModels.data = projectVms
+
+            _isLoading.data = false
+        }
+    }
+}
 
 data class ProjectViewModel(
         val name: String,
