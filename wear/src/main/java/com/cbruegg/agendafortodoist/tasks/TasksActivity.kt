@@ -4,11 +4,11 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.support.wear.ambient.AmbientMode
 import android.support.wear.widget.WearableLinearLayoutManager
 import android.support.wear.widget.WearableRecyclerView
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
-import com.cbruegg.agendafortodoist.projects.ProjectViewHolder
 import com.cbruegg.agendafortodoist.shared.todoist
 import com.cbruegg.agendafortodoist.util.CenterScrollLayoutCallback
 import com.cbruegg.agendafortodoist.util.ColorScaleListener
@@ -29,6 +29,22 @@ fun newTasksActivityIntent(context: Context, projectId: Long) =
 
 class TasksActivity : WearableActivity() {
 
+    init {
+        ambientCallbackDelegate = object : AmbientMode.AmbientCallback() {
+            override fun onExitAmbient() {
+                super.onExitAmbient()
+                tasksList.setBackgroundResource(R.color.activity_background)
+            }
+
+            override fun onEnterAmbient(ambientDetails: Bundle?) {
+                super.onEnterAmbient(ambientDetails)
+                tasksList.setBackgroundResource(android.R.color.black)
+            }
+        }
+    }
+
+    private val tasksList by lazy { findViewById<WearableRecyclerView>(R.id.tasks) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_tasks)
@@ -41,7 +57,6 @@ class TasksActivity : WearableActivity() {
                 }
         ))
 
-        val tasksList = findViewById<WearableRecyclerView>(R.id.tasks)
         val adapter = TasksAdapter(emptyList())
         tasksList.adapter = adapter
         tasksList.isEdgeItemsCenteringEnabled = true
