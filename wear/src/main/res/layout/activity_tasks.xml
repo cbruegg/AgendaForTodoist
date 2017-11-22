@@ -11,11 +11,10 @@
     tools:deviceIds="wear">
 
     <TextView
-        android:id="@+id/tasks_no_tasks"
+        android:id="@+id/tasks_big_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="@string/no_tasks"
         android:textSize="18sp" />
 
     <ProgressBar

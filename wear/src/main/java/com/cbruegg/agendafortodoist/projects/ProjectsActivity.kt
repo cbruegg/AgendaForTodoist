@@ -7,6 +7,7 @@ import android.support.wear.widget.WearableLinearLayoutManager
 import android.support.wear.widget.WearableRecyclerView
 import android.view.View
 import android.widget.ProgressBar
+import android.widget.TextView
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
 import com.cbruegg.agendafortodoist.shared.todoist
@@ -52,6 +53,7 @@ class ProjectsActivity : WearableActivity() {
         }
         val projectList = findViewById<WearableRecyclerView>(R.id.projects)
         val progressBar = findViewById<ProgressBar>(R.id.projects_progress)
+        val bigMessage = findViewById<TextView>(R.id.projects_big_message)
         projectList.adapter = adapter
         projectList.isEdgeItemsCenteringEnabled = true
         projectList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
@@ -63,6 +65,9 @@ class ProjectsActivity : WearableActivity() {
         }
         viewModel.isLoading.observe(this) {
             progressBar.visibility = if (it) View.VISIBLE else View.GONE
+        }
+        viewModel.bigMessageId.observe(this) {
+            if (it != null ) bigMessage.setText(it) else bigMessage.text = ""
         }
         viewModel.onCreate()
     }
