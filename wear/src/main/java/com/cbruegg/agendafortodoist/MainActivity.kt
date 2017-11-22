@@ -1,7 +1,9 @@
 package com.cbruegg.agendafortodoist
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.wearable.activity.WearableActivity
+import com.cbruegg.agendafortodoist.projects.ProjectsActivity
 
 class MainActivity : WearableActivity() {
 
@@ -11,5 +13,7 @@ class MainActivity : WearableActivity() {
 
         // Enables Always-on
         setAmbientEnabled()
+
+        Intent(this, ProjectsActivity::class.java).let { startActivity(it) }
     }
 }

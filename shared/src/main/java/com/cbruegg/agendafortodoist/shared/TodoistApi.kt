@@ -42,7 +42,7 @@ val todoist: TodoistApi by lazy {
 }
 
 interface TodoistApi {
-    // TODO Provide X-Request-Id header
+    // TODO Provide X-Request-Id header for modifying operations
 
     @GET("projects")
     fun projects(): Call<List<ProjectDto>>
