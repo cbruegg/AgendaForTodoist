@@ -37,7 +37,6 @@ val todoist: TodoistApi by lazy {
     val retrofit = Retrofit.Builder()
             .baseUrl(API_BASE)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .addConverterFactory(UnitConverterFactory)
             .client(okHttp)
             .build()
 
@@ -58,6 +57,6 @@ interface TodoistApi {
     fun closeTask(@Path("id") taskId: Long, @Header(REQ_ID_HEADER) requestId: Int): Call<Void>
 
     @POST("tasks/{id}/reopen")
-    fun reopenTask(@Path("id") taskId: Long, @Header(REQ_ID_HEADER) requestId: Int)
+    fun reopenTask(@Path("id") taskId: Long, @Header(REQ_ID_HEADER) requestId: Int): Call<Void>
 }
 

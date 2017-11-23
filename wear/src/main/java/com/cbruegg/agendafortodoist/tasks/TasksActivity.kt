@@ -16,6 +16,7 @@ import com.cbruegg.agendafortodoist.shared.todoist
 import com.cbruegg.agendafortodoist.util.CenterScrollLayoutCallback
 import com.cbruegg.agendafortodoist.util.ColorScaleListener
 import com.cbruegg.agendafortodoist.util.ScaleListener
+import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.util.observe
 import com.cbruegg.agendafortodoist.util.viewModel
 
@@ -65,7 +66,7 @@ class TasksActivity : WearableActivity() {
         tasksList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
 
         val viewModel = viewModel {
-            TasksViewModel(intent.extras.getLong(EXTRA_PROJECT_ID), todoist)
+            TasksViewModel(intent.extras.getLong(EXTRA_PROJECT_ID), todoist, UniqueRequestIdGenerator)
         }
 
         viewModel.taskViewModels.observe(this) {
