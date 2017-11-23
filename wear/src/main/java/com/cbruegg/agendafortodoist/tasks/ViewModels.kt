@@ -96,7 +96,7 @@ class TaskViewModel(
     private fun markUncompleted() = launch(UI) {
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
-        retry {
+        retry(HttpException::class.java) {
             todoist.reopenTask(id, requestId).awaitResponse()
             _strikethrough.data = false
         }
