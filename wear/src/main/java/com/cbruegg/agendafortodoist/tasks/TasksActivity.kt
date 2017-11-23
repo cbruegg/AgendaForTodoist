@@ -13,6 +13,7 @@ import android.widget.TextView
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
 import com.cbruegg.agendafortodoist.shared.todoist
+import com.cbruegg.agendafortodoist.task.newTaskActivityIntent
 import com.cbruegg.agendafortodoist.util.CenterScrollLayoutCallback
 import com.cbruegg.agendafortodoist.util.ColorScaleListener
 import com.cbruegg.agendafortodoist.util.ScaleListener
@@ -57,7 +58,9 @@ class TasksActivity : WearableActivity() {
                 }
         ))
 
-        val adapter = TasksAdapter(emptyList(), this)
+        val adapter = TasksAdapter(emptyList(), this) {
+            startActivity(newTaskActivityIntent(this, it.content, it.id))
+        }
         val tasksList = findViewById<WearableRecyclerView>(R.id.tasks)
         val progressBar = findViewById<ProgressBar>(R.id.tasks_progress)
         val bigMessage = findViewById<TextView>(R.id.tasks_big_message)

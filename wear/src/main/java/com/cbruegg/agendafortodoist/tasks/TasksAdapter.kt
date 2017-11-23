@@ -18,7 +18,8 @@ import com.cbruegg.agendafortodoist.util.observe
 
 class TasksAdapter(
         var data: List<TaskViewModel>,
-        lifecycleOwner: LifecycleOwner
+        lifecycleOwner: LifecycleOwner,
+        private val onClick: (TaskViewModel) -> Unit
 ) : RecyclerView.Adapter<TaskViewHolder>(), LifecycleOwner by lifecycleOwner {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
@@ -43,6 +44,7 @@ class TasksAdapter(
         }
         holder.onDoubleTap = task::onDoubleTab
         holder.onSwipe = task::onSwipe
+        holder.onClick = { onClick(task) }
     }
 
     override fun onViewDetachedFromWindow(holder: TaskViewHolder) {
@@ -56,17 +58,23 @@ class TasksAdapter(
 }
 
 class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    val nameView: TextView = itemView.findViewById(R.id.task_name)
+    val nameView: TextView = itemView.findViewById(R.id.task_content)
     val progressBar: ProgressBar = itemView.findViewById(R.id.task_loading)
 
     var taskViewModel: TaskViewModel? = null
     var strikethroughObserver: Observer<Boolean>? = null
     var isLoadingObserver: Observer<Boolean>? = null
 
+    var onClick: () -> Unit = {}
     var onDoubleTap: () -> Unit = {}
     var onSwipe: () -> Unit = {}
 
     private val detector = GestureDetectorCompat(itemView.context, object : GestureDetector.SimpleOnGestureListener() {
+
+        override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+            onClick()
+            return false
+        }
 
         override fun onDoubleTap(e: MotionEvent?): Boolean {
             onDoubleTap()

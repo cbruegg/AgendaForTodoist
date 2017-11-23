@@ -41,6 +41,10 @@
             android:name=".tasks.TasksActivity"
             android:label="@string/title_activity_tasks"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name=".task.TaskActivity"
+            android:label="@string/title_activity_task"
+            android:theme="@style/AppTheme" />
     </application>
 
 </manifest>
