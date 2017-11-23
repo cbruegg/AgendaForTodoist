@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
 import android.os.Bundle
+import android.support.wear.ambient.AmbientMode
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
@@ -26,16 +28,36 @@ fun newTaskActivityIntent(context: Context, taskContent: String, taskId: Long, t
         }
 
 class TaskActivity : WearableActivity() {
+
+    init {
+        ambientCallbackDelegate = object : AmbientMode.AmbientCallback() {
+            override fun onExitAmbient() {
+                super.onExitAmbient()
+                rootView.setBackgroundResource(R.color.activity_background)
+                completionButton.visibility = View.VISIBLE
+            }
+
+            override fun onEnterAmbient(ambientDetails: Bundle?) {
+                super.onEnterAmbient(ambientDetails)
+                rootView.setBackgroundResource(android.R.color.black)
+                completionButton.visibility = View.INVISIBLE
+            }
+        }
+    }
+
+    private val rootView by lazy { findViewById<View>(R.id.root) }
+    private val completionButton by lazy { findViewById<Button>(R.id.task_completion_button) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_task)
+        setAmbientEnabled()
 
         val taskContent = intent.getStringExtra(EXTRA_TASK_CONTENT)
         val taskId = intent.getLongExtra(EXTRA_TASK_ID, -1)
         val taskIsCompleted = intent.getBooleanExtra(EXTRA_TASK_ID, false)
 
         val contentView = findViewById<TextView>(R.id.task_content)
-        val completionButton = findViewById<Button>(R.id.task_completion_button)
 
         val viewModel = viewModel {
             TaskViewModel(taskContent, taskId, taskIsCompleted, todoist, UniqueRequestIdGenerator)
