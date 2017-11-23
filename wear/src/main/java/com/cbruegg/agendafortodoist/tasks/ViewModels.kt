@@ -71,6 +71,9 @@ class TaskViewModel(
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
+    private val _toast = MutableLiveData<Int?>(null)
+    val toast: LiveData<Int?> = _toast
+
     private val lock = Mutex()
 
     fun onDoubleTab() {
@@ -103,8 +106,9 @@ class TaskViewModel(
                 todoist.closeTask(id, requestId).awaitResponse()
                 _strikethrough.data = true
             }
-        } catch (_: HttpException) {
-            // TODO Toast error
+        }  catch (e: HttpException) {
+            e.printStackTrace()
+            _toast.data = R.string.network_error
         }
         _isLoading.data = false
     }
@@ -117,8 +121,9 @@ class TaskViewModel(
                 todoist.reopenTask(id, requestId).awaitResponse()
                 _strikethrough.data = false
             }
-        } catch (_: HttpException) {
-            // TODO Toast error
+        }  catch (e: HttpException) {
+            e.printStackTrace()
+            _toast.data = R.string.network_error
         }
         _isLoading.data = false
     }

@@ -6,6 +6,7 @@ import android.graphics.Paint
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
 import com.cbruegg.agendafortodoist.shared.todoist
@@ -50,6 +51,11 @@ class TaskActivity : WearableActivity() {
                 contentView.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
             } else {
                 contentView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+            }
+        }
+        viewModel.toast.observe(this) {
+            if (it != null) {
+                Toast.makeText(this, it, Toast.LENGTH_LONG).show()
             }
         }
         contentView.text = viewModel.taskContent

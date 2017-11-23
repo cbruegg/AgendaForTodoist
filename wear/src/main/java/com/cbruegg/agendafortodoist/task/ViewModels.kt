@@ -30,6 +30,9 @@ class TaskViewModel(
     private val _strikethrough = MutableLiveData(isCompleted)
     val strikethrough: LiveData<Boolean> = _strikethrough
 
+    private val _toast = MutableLiveData<Int?>(null)
+    val toast: LiveData<Int?> = _toast
+
     private var completionButtonAction: () -> Job = if (isCompleted) this::uncomplete else this::complete
 
     fun onCreate() {
@@ -50,8 +53,9 @@ class TaskViewModel(
                 _strikethrough.data = true
                 completionButtonAction = this@TaskViewModel::uncomplete
             }
-        } catch (_: HttpException) {
-            // TODO Toast error
+        } catch (e: HttpException) {
+            e.printStackTrace()
+            _toast.data = R.string.network_error
         }
         _isLoading.data = false
     }
@@ -67,8 +71,9 @@ class TaskViewModel(
                 _strikethrough.data = false
                 completionButtonAction = this@TaskViewModel::complete
             }
-        } catch (_: HttpException) {
-            // TODO Toast error
+        } catch (e: HttpException) {
+            e.printStackTrace()
+            _toast.data = R.string.network_error
         }
         _isLoading.data = false
     }

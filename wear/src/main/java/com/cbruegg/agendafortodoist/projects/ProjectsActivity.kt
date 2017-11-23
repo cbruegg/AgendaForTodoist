@@ -67,7 +67,7 @@ class ProjectsActivity : WearableActivity() {
             progressBar.visibility = if (it) View.VISIBLE else View.GONE
         }
         viewModel.bigMessageId.observe(this) {
-            if (it != null ) bigMessage.setText(it) else bigMessage.text = ""
+            if (it != null) bigMessage.setText(it) else bigMessage.text = ""
         }
         viewModel.onCreate()
     }

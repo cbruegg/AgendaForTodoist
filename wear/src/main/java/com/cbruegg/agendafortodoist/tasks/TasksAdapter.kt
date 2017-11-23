@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.util.observe
 
@@ -48,6 +49,11 @@ class TasksAdapter(
         holder.isLoadingObserver = task.isLoading.observe(this) {
             holder.progressBar.visibility = if (it) View.VISIBLE else View.GONE
         }
+        holder.toastObserver = task.toast.observe(this) {
+            if (it != null) {
+                Toast.makeText(holder.itemView.context, it, Toast.LENGTH_LONG).show()
+            }
+        }
         holder.onDoubleTap = task::onDoubleTab
         holder.onSwipe = task::onSwipe
         holder.onClick = { onClick(task) }
@@ -57,6 +63,8 @@ class TasksAdapter(
         super.onViewDetachedFromWindow(holder)
 
         holder.strikethroughObserver?.let { holder.taskViewModel?.strikethrough?.removeObserver(it) }
+        holder.toastObserver?.let { holder.taskViewModel?.toast?.removeObserver(it) }
+        holder.isLoadingObserver?.let { holder.taskViewModel?.isLoading?.removeObserver(it) }
     }
 
 
@@ -70,6 +78,7 @@ class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     var taskViewModel: TaskViewModel? = null
     var strikethroughObserver: Observer<Boolean>? = null
     var isLoadingObserver: Observer<Boolean>? = null
+    var toastObserver: Observer<Int?>? = null
 
     var onClick: () -> Unit = {}
     var onDoubleTap: () -> Unit = {}
