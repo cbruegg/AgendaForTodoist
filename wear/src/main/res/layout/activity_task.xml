@@ -4,18 +4,33 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ScrollView
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
+        android:orientation="vertical"
         app:boxedEdges="all">
 
-        <TextView
-            android:id="@+id/task_content"
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_gravity="top"
+            android:layout_weight="1">
+
+            <TextView
+                android:id="@+id/task_content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp" />
+
+        </ScrollView>
+
+        <Button
+            android:id="@+id/task_completion_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:textSize="16sp" />
-    </ScrollView>
+            android:layout_gravity="bottom" />
+    </LinearLayout>
+
 
 </android.support.wear.widget.BoxInsetLayout>

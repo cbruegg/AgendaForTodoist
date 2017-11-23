@@ -62,7 +62,7 @@ class TasksViewModel(
 class TaskViewModel(
         val content: String,
         val id: Long,
-        @Volatile private var isCompleted: Boolean,
+        @Volatile var isCompleted: Boolean,
         private val requestIdGenerator: UniqueRequestIdGenerator
 ) : ViewModel() {
     private val _strikethrough = MutableLiveData(isCompleted)
@@ -98,9 +98,13 @@ class TaskViewModel(
     private fun markCompleted() = launch(UI) {
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
-        retry(HttpException::class.java) {
-            todoist.closeTask(id, requestId).awaitResponse()
-            _strikethrough.data = true
+        try {
+            retry(HttpException::class.java) {
+                todoist.closeTask(id, requestId).awaitResponse()
+                _strikethrough.data = true
+            }
+        } catch (_: HttpException) {
+            // TODO Toast error
         }
         _isLoading.data = false
     }
@@ -108,9 +112,13 @@ class TaskViewModel(
     private fun markUncompleted() = launch(UI) {
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
-        retry(HttpException::class.java) {
-            todoist.reopenTask(id, requestId).awaitResponse()
-            _strikethrough.data = false
+        try {
+            retry(HttpException::class.java) {
+                todoist.reopenTask(id, requestId).awaitResponse()
+                _strikethrough.data = false
+            }
+        } catch (_: HttpException) {
+            // TODO Toast error
         }
         _isLoading.data = false
     }
