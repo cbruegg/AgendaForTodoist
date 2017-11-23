@@ -22,6 +22,12 @@ class TasksAdapter(
         private val onClick: (TaskViewModel) -> Unit
 ) : RecyclerView.Adapter<TaskViewHolder>(), LifecycleOwner by lifecycleOwner {
 
+    init {
+        setHasStableIds(true)
+    }
+
+    override fun getItemId(position: Int) = data[position].id
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
             TaskViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.row_task, parent, false))
 

@@ -31,9 +31,16 @@ class TasksViewModel(
     private val _bigMessageId = MutableLiveData<Int?>(null)
     val bigMessageId: LiveData<Int?> = _bigMessageId
 
+    private val _showList = MutableLiveData(false)
+    val showList: LiveData<Boolean> = _showList
+
     fun onCreate() {
+    }
+
+    private fun reload() {
         launch(UI) {
             _isLoading.data = true
+            _showList.data = false
             try {
                 val tasks = todoist.tasks(projectId).await()
                 _taskViewModels.data = tasks.map { TaskViewModel(it, requestIdGenerator) }
@@ -43,7 +50,12 @@ class TasksViewModel(
                 _bigMessageId.data = R.string.network_error
             }
             _isLoading.data = false
+            _showList.data = true
         }
+    }
+
+    fun onResume() {
+        reload()
     }
 }
 

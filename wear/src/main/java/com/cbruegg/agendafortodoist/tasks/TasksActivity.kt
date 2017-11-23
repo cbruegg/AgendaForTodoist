@@ -45,6 +45,11 @@ class TasksActivity : WearableActivity() {
     }
 
     private val rootView by lazy { findViewById<View>(R.id.root) }
+    private val viewModel by lazy {
+        viewModel {
+            TasksViewModel(intent.extras.getLong(EXTRA_PROJECT_ID), todoist, UniqueRequestIdGenerator)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,10 +73,6 @@ class TasksActivity : WearableActivity() {
         tasksList.isEdgeItemsCenteringEnabled = true
         tasksList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
 
-        val viewModel = viewModel {
-            TasksViewModel(intent.extras.getLong(EXTRA_PROJECT_ID), todoist, UniqueRequestIdGenerator)
-        }
-
         viewModel.taskViewModels.observe(this) {
             adapter.data = it
             adapter.notifyDataSetChanged()
@@ -82,6 +83,15 @@ class TasksActivity : WearableActivity() {
         viewModel.bigMessageId.observe(this) {
             if (it != null) bigMessage.setText(it) else bigMessage.text = ""
         }
+        viewModel.showList.observe(this) {
+            tasksList.visibility = if (it) View.VISIBLE else View.INVISIBLE
+        }
         viewModel.onCreate()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        viewModel.onResume()
     }
 }
