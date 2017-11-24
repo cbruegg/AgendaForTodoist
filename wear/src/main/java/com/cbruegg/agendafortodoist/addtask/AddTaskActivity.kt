@@ -71,7 +71,6 @@ class AddTaskActivity : WearableActivity() {
                 }
 
                 e.printStackTrace()
-                System.err.println(e.response().errorBody()?.string())
                 Toast.makeText(this@AddTaskActivity, R.string.http_error, Toast.LENGTH_LONG).show()
             } catch (e: IOException) {
                 e.printStackTrace()

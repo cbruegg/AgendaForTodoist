@@ -83,10 +83,8 @@ class TaskActivity : WearableActivity() {
                 contentView.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
             }
         }
-        viewModel.toast.observe(this) {
-            if (it != null) {
-                Toast.makeText(this, it, Toast.LENGTH_LONG).show()
-            }
+        viewModel.toast = {
+            Toast.makeText(this, it, Toast.LENGTH_LONG).show()
         }
         viewModel.isCompleted.observe(this) {
             setResult(if (it != taskIsCompleted) RESULT_CHANGED else RESULT_UNCHANGED)

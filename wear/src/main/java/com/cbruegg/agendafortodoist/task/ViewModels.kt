@@ -34,8 +34,7 @@ class TaskViewModel(
     private val _isCompleted = MutableLiveData(isCompleted)
     val isCompleted: LiveData<Boolean> = _isCompleted
 
-    private val _toast = MutableLiveData<Int?>(null)
-    val toast: LiveData<Int?> = _toast
+    var toast: (Int) -> Unit = {}
 
     private var completionButtonAction: () -> Job = if (isCompleted) this::uncomplete else this::complete
 
@@ -65,10 +64,10 @@ class TaskViewModel(
                 onAuthError()
             }
             e.printStackTrace()
-            _toast.data = R.string.http_error
+            toast(R.string.http_error)
         } catch (e: IOException) {
             e.printStackTrace()
-            _toast.data = R.string.network_error
+            toast(R.string.network_error)
         }
         _isLoading.data = false
     }
@@ -90,10 +89,10 @@ class TaskViewModel(
                 onAuthError()
             }
             e.printStackTrace()
-            _toast.data = R.string.http_error
+            toast(R.string.http_error)
         } catch (e: IOException) {
             e.printStackTrace()
-            _toast.data = R.string.network_error
+            toast(R.string.network_error)
         }
         _isLoading.data = false
     }
