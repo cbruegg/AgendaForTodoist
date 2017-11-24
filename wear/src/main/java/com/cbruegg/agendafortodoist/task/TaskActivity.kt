@@ -56,7 +56,7 @@ class TaskActivity : WearableActivity() {
 
         val taskContent = intent.getStringExtra(EXTRA_TASK_CONTENT)
         val taskId = intent.getLongExtra(EXTRA_TASK_ID, -1)
-        val taskIsCompleted = intent.getBooleanExtra(EXTRA_TASK_ID, false)
+        val taskIsCompleted = intent.getBooleanExtra(EXTRA_TASK_IS_COMPLETED, false)
 
         val contentView = findViewById<TextView>(R.id.task_content)
 
