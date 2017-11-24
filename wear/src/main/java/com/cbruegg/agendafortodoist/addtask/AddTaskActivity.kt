@@ -44,7 +44,9 @@ class AddTaskActivity : WearableActivity() {
                 val results = data.getStringArrayListExtra(
                         RecognizerIntent.EXTRA_RESULTS)
                 val spokenText = results[0]
-                onReceiveText(spokenText)
+                if (spokenText != null) {
+                    onReceiveText(spokenText)
+                }
             } else {
                 Toast.makeText(this@AddTaskActivity, R.string.speech_input_error, Toast.LENGTH_LONG).show()
             }
