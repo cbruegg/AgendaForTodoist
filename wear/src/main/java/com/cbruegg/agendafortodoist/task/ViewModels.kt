@@ -31,6 +31,9 @@ class TaskViewModel(
     private val _strikethrough = MutableLiveData(isCompleted)
     val strikethrough: LiveData<Boolean> = _strikethrough
 
+    private val _isCompleted = MutableLiveData(isCompleted)
+    val isCompleted: LiveData<Boolean> = _isCompleted
+
     private val _toast = MutableLiveData<Int?>(null)
     val toast: LiveData<Int?> = _toast
 
@@ -54,6 +57,7 @@ class TaskViewModel(
                 todoist.closeTask(taskId, requestId).awaitResponse()
                 _completionButtonStringId.data = R.string.uncomplete
                 _strikethrough.data = true
+                _isCompleted.data = true
                 completionButtonAction = this@TaskViewModel::uncomplete
             }
         } catch (e: HttpException) {
@@ -78,6 +82,7 @@ class TaskViewModel(
                 todoist.reopenTask(taskId, requestId).awaitResponse()
                 _completionButtonStringId.data = R.string.complete
                 _strikethrough.data = false
+                _isCompleted.data = false
                 completionButtonAction = this@TaskViewModel::complete
             }
         } catch (e: HttpException) {

@@ -20,7 +20,7 @@ class TasksViewModel(
         val projectId: Long,
         private val todoist: TodoistApi,
         private val requestIdGenerator: UniqueRequestIdGenerator
-        ) : ViewModel() {
+) : ViewModel() {
 
     private val _taskViewModels = MutableLiveData(emptyList<TaskViewModel>())
     val taskViewModels: LiveData<List<TaskViewModel>> = _taskViewModels
@@ -35,6 +35,7 @@ class TasksViewModel(
     val showList: LiveData<Boolean> = _showList
 
     var onAuthError: () -> Unit = {}
+    var skipNextResumeReload = false
 
     private fun reload() {
         launch(UI) {
@@ -54,6 +55,10 @@ class TasksViewModel(
     }
 
     fun onResume() {
+        if (skipNextResumeReload) {
+            skipNextResumeReload = false
+            return
+        }
         reload()
     }
 }

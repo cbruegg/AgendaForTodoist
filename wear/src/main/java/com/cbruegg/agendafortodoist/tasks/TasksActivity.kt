@@ -16,6 +16,7 @@ import com.cbruegg.agendafortodoist.WearableActivity
 import com.cbruegg.agendafortodoist.addtask.newAddTaskActivityIntent
 import com.cbruegg.agendafortodoist.app
 import com.cbruegg.agendafortodoist.auth.AuthActivity
+import com.cbruegg.agendafortodoist.task.RESULT_UNCHANGED
 import com.cbruegg.agendafortodoist.task.newTaskActivityIntent
 import com.cbruegg.agendafortodoist.util.CenterScrollLayoutCallback
 import com.cbruegg.agendafortodoist.util.ColorScaleListener
@@ -30,6 +31,8 @@ fun newTasksActivityIntent(context: Context, projectId: Long) =
         Intent(context, TasksActivity::class.java).apply {
             putExtra(EXTRA_PROJECT_ID, projectId)
         }
+
+private const val REQUEST_CODE_TASK = 0
 
 class TasksActivity : WearableActivity() {
 
@@ -65,7 +68,7 @@ class TasksActivity : WearableActivity() {
         ))
 
         val adapter = TasksAdapter(emptyList(), this) {
-            startActivity(newTaskActivityIntent(this, it.content, it.id, it.isCompleted))
+            startActivityForResult(newTaskActivityIntent(this, it.content, it.id, it.isCompleted), REQUEST_CODE_TASK)
         }
         val tasksList = findViewById<WearableRecyclerView>(R.id.tasks)
         val progressBar = findViewById<ProgressBar>(R.id.tasks_progress)
@@ -99,6 +102,14 @@ class TasksActivity : WearableActivity() {
         }
         viewModel.showList.observe(this) {
             tasksList.visibility = if (it) View.VISIBLE else View.INVISIBLE
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_CODE_TASK) {
+            viewModel.skipNextResumeReload = resultCode == RESULT_UNCHANGED
         }
     }
 

@@ -17,6 +17,8 @@ import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.util.observe
 import com.cbruegg.agendafortodoist.util.viewModel
 
+const val RESULT_CHANGED = 1000
+const val RESULT_UNCHANGED = 1001
 private const val EXTRA_TASK_CONTENT = "task_content"
 private const val EXTRA_TASK_ID = "task_id"
 private const val EXTRA_TASK_IS_COMPLETED = "task_is_completed"
@@ -48,6 +50,7 @@ class TaskActivity : WearableActivity() {
 
     private val rootView by lazy { findViewById<View>(R.id.root) }
     private val completionButton by lazy { findViewById<Button>(R.id.task_completion_button) }
+    private lateinit var viewModel: TaskViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +64,7 @@ class TaskActivity : WearableActivity() {
         val contentView = findViewById<TextView>(R.id.task_content)
 
         val todoist = app.netComponent.todoist()
-        val viewModel = viewModel {
+        viewModel = viewModel {
             TaskViewModel(taskContent, taskId, taskIsCompleted, todoist, UniqueRequestIdGenerator)
         }
         viewModel.onAuthError = {
@@ -85,9 +88,13 @@ class TaskActivity : WearableActivity() {
                 Toast.makeText(this, it, Toast.LENGTH_LONG).show()
             }
         }
+        viewModel.isCompleted.observe(this) {
+            setResult(if (it != taskIsCompleted) RESULT_CHANGED else RESULT_UNCHANGED)
+        }
         contentView.text = viewModel.taskContent
         completionButton.setOnClickListener { viewModel.onCompletionButtonClick() }
 
         viewModel.onCreate()
     }
+
 }
