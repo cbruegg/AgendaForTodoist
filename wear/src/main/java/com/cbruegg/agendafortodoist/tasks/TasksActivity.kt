@@ -12,8 +12,8 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
-import com.cbruegg.agendafortodoist.Settings
-import com.cbruegg.agendafortodoist.shared.todoist.todoist
+import com.cbruegg.agendafortodoist.app
+import com.cbruegg.agendafortodoist.auth.AuthActivity
 import com.cbruegg.agendafortodoist.task.newTaskActivityIntent
 import com.cbruegg.agendafortodoist.util.CenterScrollLayoutCallback
 import com.cbruegg.agendafortodoist.util.ColorScaleListener
@@ -48,8 +48,12 @@ class TasksActivity : WearableActivity() {
     private val rootView by lazy { findViewById<View>(R.id.root) }
     private val viewModel by lazy {
         viewModel {
-            val todoist = todoist(Settings(this).retrieveAuth().accessToken)
+            val todoist = app.netComponent.todoist()
             TasksViewModel(intent.extras.getLong(EXTRA_PROJECT_ID), todoist, UniqueRequestIdGenerator)
+        }.also {
+            it.onAuthError = {
+                startActivity(Intent(this, AuthActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) })
+            }
         }
     }
 

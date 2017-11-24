@@ -1,5 +1,6 @@
 package com.cbruegg.agendafortodoist.projects
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.support.wear.ambient.AmbientMode
@@ -10,8 +11,8 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
-import com.cbruegg.agendafortodoist.Settings
-import com.cbruegg.agendafortodoist.shared.todoist.todoist
+import com.cbruegg.agendafortodoist.app
+import com.cbruegg.agendafortodoist.auth.AuthActivity
 import com.cbruegg.agendafortodoist.tasks.newTasksActivityIntent
 import com.cbruegg.agendafortodoist.util.CenterScrollLayoutCallback
 import com.cbruegg.agendafortodoist.util.ColorScaleListener
@@ -59,8 +60,14 @@ class ProjectsActivity : WearableActivity() {
         projectList.isEdgeItemsCenteringEnabled = true
         projectList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
 
-        val todoist = todoist(Settings(this).retrieveAuth().accessToken)
-        val viewModel = viewModel { ProjectsViewModel(todoist) }
+        val todoist = app.netComponent.todoist()
+        val viewModel = viewModel {
+            ProjectsViewModel(todoist)
+        }.also {
+            it.onAuthError = {
+                startActivity(Intent(this, AuthActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) })
+            }
+        }
         viewModel.projectViewModels.observe(this) {
             adapter.data = it
             adapter.notifyDataSetChanged()

@@ -9,7 +9,7 @@ class MainActivity : WearableActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val settings = Settings(this)
+        val settings = app.applicationComponent.settings()
         val act = if (settings.containsAuth()) {
             ProjectsActivity::class.java
         } else {

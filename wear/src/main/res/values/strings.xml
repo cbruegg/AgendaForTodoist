@@ -10,6 +10,7 @@
     <string name="title_activity_task">TaskActivity</string>
     <string name="no_tasks">No tasks.</string>
     <string name="network_error">Network error.</string>
+    <string name="http_error">Service error.</string>
     <string name="uncomplete">Uncomplete</string>
     <string name="complete">Complete</string>
     <string name="auth_visit_template">Sign in on\n%1$s</string>

@@ -14,7 +14,11 @@ import retrofit2.http.Query
 
 private const val API_BASE = "https://beta.todoist.com/API/v8/"
 
-fun todoist(accessToken: String): TodoistApi {
+interface AccessTokenGetter {
+    val accessToken: String
+}
+
+fun todoist(accessTokenGetter: AccessTokenGetter): TodoistApi {
     val moshi = Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
             .build()
@@ -23,7 +27,7 @@ fun todoist(accessToken: String): TodoistApi {
             .addInterceptor { chain ->
                 val curUrl = chain.request().url()
                 val newUrl = curUrl.newBuilder()
-                        .addQueryParameter("token", accessToken)
+                        .addQueryParameter("token", accessTokenGetter.accessToken)
                         .build()
 
                 chain.proceed(

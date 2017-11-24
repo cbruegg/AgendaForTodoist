@@ -10,13 +10,7 @@ android {
         versionCode 1
         versionName "1.0"
 
-        // TODO OAuth2 instead of static token
-        def apiIdProps = new Properties()
-        apiIdProps.load(new FileInputStream(file("api_id.properties")))
-        buildConfigField "String", "API_ID", "\"" + apiIdProps.id + "\""
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {

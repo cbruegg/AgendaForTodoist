@@ -26,7 +26,6 @@ kotlin {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'org.jetbrains.kotlinx:kotlinx-coroutines-core:0.19.3'
     compile 'org.jetbrains.kotlinx:kotlinx-coroutines-android:0.19.3'
     implementation 'ru.gildor.coroutines:kotlin-coroutines-retrofit:0.8.2'
@@ -40,6 +39,9 @@ dependencies {
     implementation 'com.android.support:wear:27.0.1'
     compileOnly 'com.google.android.wearable:wearable:2.1.0'
     implementation project(':shared')
+
+    implementation 'com.google.dagger:dagger:2.12'
+    kapt 'com.google.dagger:dagger-compiler:2.12'
 
     implementation "android.arch.lifecycle:runtime:1.0.3"
     implementation "android.arch.lifecycle:extensions:1.0.0"

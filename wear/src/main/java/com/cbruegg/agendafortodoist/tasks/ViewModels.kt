@@ -14,12 +14,13 @@ import kotlinx.coroutines.experimental.sync.Mutex
 import retrofit2.HttpException
 import ru.gildor.coroutines.retrofit.await
 import ru.gildor.coroutines.retrofit.awaitResponse
+import java.io.IOException
 
 class TasksViewModel(
         val projectId: Long,
         private val todoist: TodoistApi,
         private val requestIdGenerator: UniqueRequestIdGenerator
-) : ViewModel() {
+        ) : ViewModel() {
 
     private val _taskViewModels = MutableLiveData(emptyList<TaskViewModel>())
     val taskViewModels: LiveData<List<TaskViewModel>> = _taskViewModels
@@ -33,6 +34,8 @@ class TasksViewModel(
     private val _showList = MutableLiveData(false)
     val showList: LiveData<Boolean> = _showList
 
+    var onAuthError: () -> Unit = {}
+
     fun onCreate() {
     }
 
@@ -42,7 +45,7 @@ class TasksViewModel(
             _showList.data = false
             try {
                 val tasks = todoist.tasks(projectId).await()
-                _taskViewModels.data = tasks.map { TaskViewModel(it, requestIdGenerator, todoist) }
+                _taskViewModels.data = tasks.map { TaskViewModel(it, requestIdGenerator, todoist, onAuthError) }
                 _bigMessageId.data = if (tasks.isEmpty()) R.string.no_tasks else null
             } catch (e: HttpException) {
                 _taskViewModels.data = emptyList()
@@ -63,7 +66,8 @@ class TaskViewModel(
         val id: Long,
         @Volatile var isCompleted: Boolean,
         private val requestIdGenerator: UniqueRequestIdGenerator,
-        private val todoist: TodoistApi
+        private val todoist: TodoistApi,
+        private val onAuthError: () -> Unit
 ) : ViewModel() {
     private val _strikethrough = MutableLiveData(isCompleted)
     val strikethrough: LiveData<Boolean> = _strikethrough
@@ -102,11 +106,17 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            retry(HttpException::class.java) {
+            retry(HttpException::class.java, IOException::class.java) {
                 todoist.closeTask(id, requestId).awaitResponse()
                 _strikethrough.data = true
             }
         } catch (e: HttpException) {
+            if (e.response().code() == 401) {
+                onAuthError()
+            }
+            e.printStackTrace()
+            _toast.data = R.string.http_error
+        } catch (e: IOException) {
             e.printStackTrace()
             _toast.data = R.string.network_error
         }
@@ -117,11 +127,17 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            retry(HttpException::class.java) {
+            retry(HttpException::class.java, IOException::class.java) {
                 todoist.reopenTask(id, requestId).awaitResponse()
                 _strikethrough.data = false
             }
         } catch (e: HttpException) {
+            if (e.response().code() == 401) {
+                onAuthError()
+            }
+            e.printStackTrace()
+            _toast.data = R.string.http_error
+        } catch (e: IOException) {
             e.printStackTrace()
             _toast.data = R.string.network_error
         }
@@ -132,5 +148,6 @@ class TaskViewModel(
 fun TaskViewModel(
         taskDto: TaskDto,
         requestIdGenerator: UniqueRequestIdGenerator,
-        todoist: TodoistApi
-) = TaskViewModel(taskDto.content, taskDto.id, taskDto.isCompleted, requestIdGenerator, todoist)
+        todoist: TodoistApi,
+        onAuthError: () -> Unit
+) = TaskViewModel(taskDto.content, taskDto.id, taskDto.isCompleted, requestIdGenerator, todoist, onAuthError)

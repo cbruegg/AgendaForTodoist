@@ -12,6 +12,7 @@ import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import retrofit2.HttpException
 import ru.gildor.coroutines.retrofit.awaitResponse
+import java.io.IOException
 
 class TaskViewModel(
         val taskContent: String,
@@ -35,6 +36,8 @@ class TaskViewModel(
 
     private var completionButtonAction: () -> Job = if (isCompleted) this::uncomplete else this::complete
 
+    var onAuthError: () -> Unit = {}
+
     fun onCreate() {
 
     }
@@ -47,13 +50,19 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            retry(HttpException::class.java) {
+            retry(HttpException::class.java, IOException::class.java) {
                 todoist.closeTask(taskId, requestId).awaitResponse()
                 _completionButtonStringId.data = R.string.uncomplete
                 _strikethrough.data = true
                 completionButtonAction = this@TaskViewModel::uncomplete
             }
         } catch (e: HttpException) {
+            if (e.response().code() == 401) {
+                onAuthError()
+            }
+            e.printStackTrace()
+            _toast.data = R.string.http_error
+        } catch (e: IOException) {
             e.printStackTrace()
             _toast.data = R.string.network_error
         }
@@ -65,13 +74,19 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            retry(HttpException::class.java) {
+            retry(HttpException::class.java, IOException::class.java) {
                 todoist.reopenTask(taskId, requestId).awaitResponse()
                 _completionButtonStringId.data = R.string.complete
                 _strikethrough.data = false
                 completionButtonAction = this@TaskViewModel::complete
             }
         } catch (e: HttpException) {
+            if (e.response().code() == 401) {
+                onAuthError()
+            }
+            e.printStackTrace()
+            _toast.data = R.string.http_error
+        } catch (e: IOException) {
             e.printStackTrace()
             _toast.data = R.string.network_error
         }
