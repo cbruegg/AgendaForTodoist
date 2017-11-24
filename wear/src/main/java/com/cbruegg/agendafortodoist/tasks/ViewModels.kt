@@ -36,9 +36,6 @@ class TasksViewModel(
 
     var onAuthError: () -> Unit = {}
 
-    fun onCreate() {
-    }
-
     private fun reload() {
         launch(UI) {
             _isLoading.data = true

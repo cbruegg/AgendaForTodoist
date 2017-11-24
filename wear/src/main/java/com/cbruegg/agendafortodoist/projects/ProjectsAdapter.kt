@@ -13,9 +13,14 @@ class ProjectsAdapter(
         private val onClick: (ProjectViewModel) -> Unit = {}
 ) : RecyclerView.Adapter<ProjectViewHolder>() {
 
+    init {
+        setHasStableIds(true)
+    }
+
+    override fun getItemId(position: Int) = data[position].id
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
             ProjectViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.row_project, parent, false))
-
 
     override fun onBindViewHolder(holder: ProjectViewHolder, position: Int) {
         val project = data[position]

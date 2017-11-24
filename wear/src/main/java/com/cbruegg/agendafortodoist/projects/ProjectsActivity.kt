@@ -37,6 +37,7 @@ class ProjectsActivity : WearableActivity() {
     }
 
     private val rootView by lazy { findViewById<View>(R.id.root) }
+    private lateinit var viewModel: ProjectsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,10 +60,8 @@ class ProjectsActivity : WearableActivity() {
         projectList.adapter = adapter
         projectList.isEdgeItemsCenteringEnabled = true
         projectList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
-
-        val todoist = app.netComponent.todoist()
-        val viewModel = viewModel {
-            ProjectsViewModel(todoist)
+        viewModel = viewModel {
+            ProjectsViewModel(app.netComponent.todoist())
         }.also {
             it.onAuthError = {
                 startActivity(Intent(this, AuthActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) })
@@ -78,7 +77,11 @@ class ProjectsActivity : WearableActivity() {
         viewModel.bigMessageId.observe(this) {
             if (it != null) bigMessage.setText(it) else bigMessage.text = ""
         }
-        viewModel.onCreate()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.onResume()
     }
 }
 

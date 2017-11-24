@@ -46,16 +46,7 @@ class TasksActivity : WearableActivity() {
     }
 
     private val rootView by lazy { findViewById<View>(R.id.root) }
-    private val viewModel by lazy {
-        viewModel {
-            val todoist = app.netComponent.todoist()
-            TasksViewModel(intent.extras.getLong(EXTRA_PROJECT_ID), todoist, UniqueRequestIdGenerator)
-        }.also {
-            it.onAuthError = {
-                startActivity(Intent(this, AuthActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) })
-            }
-        }
-    }
+    private lateinit var viewModel: TasksViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,6 +70,14 @@ class TasksActivity : WearableActivity() {
         tasksList.isEdgeItemsCenteringEnabled = true
         tasksList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
 
+        viewModel = viewModel {
+            val todoist = app.netComponent.todoist()
+            TasksViewModel(intent.extras.getLong(EXTRA_PROJECT_ID), todoist, UniqueRequestIdGenerator)
+        }.also {
+            it.onAuthError = {
+                startActivity(Intent(this, AuthActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) })
+            }
+        }
         viewModel.taskViewModels.observe(this) {
             adapter.data = it
             adapter.notifyDataSetChanged()
@@ -92,7 +91,6 @@ class TasksActivity : WearableActivity() {
         viewModel.showList.observe(this) {
             tasksList.visibility = if (it) View.VISIBLE else View.INVISIBLE
         }
-        viewModel.onCreate()
     }
 
     override fun onResume() {

@@ -25,7 +25,7 @@ class ProjectsViewModel(private val todoist: TodoistApi) : ViewModel() {
 
     var onAuthError: () -> Unit = {}
 
-    fun onCreate() {
+    fun onResume() {
         launch(UI) {
             _isLoading.data = true
             try {
