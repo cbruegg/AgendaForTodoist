@@ -1,35 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout android:id="@+id/root"
+<LinearLayout android:id="@+id/root"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/activity_background"
+    android:orientation="vertical"
     android:padding="@dimen/inner_frame_layout_padding"
     tools:context="com.cbruegg.agendafortodoist.tasks.TasksActivity"
     tools:deviceIds="wear">
 
-    <TextView
-        android:id="@+id/tasks_big_message"
+    <ImageButton
+        android:id="@+id/tasks_add_task"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:textSize="18sp" />
+        android:layout_gravity="center_horizontal"
+        android:src="@drawable/ic_add_white_24dp" />
 
-    <ProgressBar
-        android:id="@+id/tasks_progress"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:indeterminate="true"
-        android:visibility="gone" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-    <android.support.wear.widget.WearableRecyclerView
-        android:id="@+id/tasks"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbars="vertical"
-        app:boxedEdges="all"
-        app:circular_scrolling_gesture_enabled="true" />
+        <android.support.wear.widget.WearableRecyclerView
+            android:id="@+id/tasks"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="vertical"
+            app:boxedEdges="all"
+            app:circular_scrolling_gesture_enabled="true" />
 
-</FrameLayout>
+        <TextView
+            android:id="@+id/tasks_big_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textSize="18sp" />
+
+        <ProgressBar
+            android:id="@+id/tasks_progress"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:indeterminate="true"
+            android:visibility="gone" />
+    </FrameLayout>
+
+
+</LinearLayout>

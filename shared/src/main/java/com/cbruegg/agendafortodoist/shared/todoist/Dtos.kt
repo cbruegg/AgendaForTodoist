@@ -22,3 +22,8 @@ data class TaskDto(
         @Json(name = "url") val url: String,
         @Json(name = "comment_count") val commentCount: Int
 )
+
+data class NewTaskDto(
+        @Json(name = "content") val content: String,
+        @Json(name = "project_id") val projectId: Long
+)

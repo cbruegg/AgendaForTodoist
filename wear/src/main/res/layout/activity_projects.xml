@@ -11,6 +11,16 @@
     tools:context="com.cbruegg.agendafortodoist.projects.ProjectsActivity"
     tools:deviceIds="wear">
 
+    <android.support.wear.widget.WearableRecyclerView
+        android:id="@+id/projects"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="vertical"
+        app:boxedEdges="all"
+        app:circular_scrolling_gesture_enabled="true"
+        tools:context="com.cbruegg.agendafortodoist.projects.ProjectsActivity"
+        tools:deviceIds="wear" />
+
     <TextView
         android:id="@+id/projects_big_message"
         android:layout_width="wrap_content"
@@ -24,16 +34,5 @@
         android:layout_height="match_parent"
         android:indeterminate="true"
         android:visibility="gone" />
-
-    <android.support.wear.widget.WearableRecyclerView
-        android:id="@+id/projects"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbars="vertical"
-        app:boxedEdges="all"
-        app:circular_scrolling_gesture_enabled="true"
-        tools:context="com.cbruegg.agendafortodoist.projects.ProjectsActivity"
-        tools:deviceIds="wear" />
-
 
 </FrameLayout>

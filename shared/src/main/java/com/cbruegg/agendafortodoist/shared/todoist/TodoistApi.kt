@@ -6,8 +6,10 @@ import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -62,5 +64,8 @@ interface TodoistApi {
 
     @POST("tasks/{id}/reopen")
     fun reopenTask(@Path("id") taskId: Long, @Header(REQ_ID_HEADER) requestId: Int): Call<Void>
+
+    @POST("tasks") @Headers("Content-Type: application/json")
+    fun addTask(@Header(REQ_ID_HEADER) requestId: Int, @Body taskDto: NewTaskDto): Call<Void>
 }
 

@@ -8,10 +8,12 @@ import android.support.wear.ambient.AmbientMode
 import android.support.wear.widget.WearableLinearLayoutManager
 import android.support.wear.widget.WearableRecyclerView
 import android.view.View
+import android.widget.ImageButton
 import android.widget.ProgressBar
 import android.widget.TextView
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
+import com.cbruegg.agendafortodoist.addtask.newAddTaskActivityIntent
 import com.cbruegg.agendafortodoist.app
 import com.cbruegg.agendafortodoist.auth.AuthActivity
 import com.cbruegg.agendafortodoist.task.newTaskActivityIntent
@@ -53,6 +55,8 @@ class TasksActivity : WearableActivity() {
         setContentView(R.layout.activity_tasks)
         setAmbientEnabled()
 
+        val projectId = intent.extras.getLong(EXTRA_PROJECT_ID)
+
         val scrollCallback = CenterScrollLayoutCallback(listOf(
                 ScaleListener(),
                 ColorScaleListener(Color.WHITE, Color.GRAY) {
@@ -66,13 +70,18 @@ class TasksActivity : WearableActivity() {
         val tasksList = findViewById<WearableRecyclerView>(R.id.tasks)
         val progressBar = findViewById<ProgressBar>(R.id.tasks_progress)
         val bigMessage = findViewById<TextView>(R.id.tasks_big_message)
+        val addTasksButton = findViewById<ImageButton>(R.id.tasks_add_task)
         tasksList.adapter = adapter
         tasksList.isEdgeItemsCenteringEnabled = true
         tasksList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
 
+        addTasksButton.setOnClickListener {
+            startActivity(newAddTaskActivityIntent(this, projectId))
+        }
+
         viewModel = viewModel {
             val todoist = app.netComponent.todoist()
-            TasksViewModel(intent.extras.getLong(EXTRA_PROJECT_ID), todoist, UniqueRequestIdGenerator)
+            TasksViewModel(projectId, todoist, UniqueRequestIdGenerator)
         }.also {
             it.onAuthError = {
                 startActivity(Intent(this, AuthActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) })
