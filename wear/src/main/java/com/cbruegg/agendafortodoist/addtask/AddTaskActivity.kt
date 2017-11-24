@@ -9,6 +9,7 @@ import android.support.wearable.activity.WearableActivity
 import android.widget.Toast
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.app
+import com.cbruegg.agendafortodoist.auth.AuthActivity
 import com.cbruegg.agendafortodoist.shared.todoist.NewTaskDto
 import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.util.retry
@@ -62,6 +63,13 @@ class AddTaskActivity : WearableActivity() {
                     if (resp.code() !in 200..299) throw HttpException(resp)
                 }
             } catch (e: HttpException) {
+                if (e.code() == 401) {
+                    startActivity(
+                            Intent(this@AddTaskActivity, AuthActivity::class.java)
+                                    .apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }
+                    )
+                }
+
                 e.printStackTrace()
                 System.err.println(e.response().errorBody()?.string())
                 Toast.makeText(this@AddTaskActivity, R.string.http_error, Toast.LENGTH_LONG).show()
