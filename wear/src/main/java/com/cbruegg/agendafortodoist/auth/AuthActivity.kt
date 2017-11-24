@@ -57,7 +57,7 @@ class AuthActivity : WearableActivity() {
             }
 
             val authDto = waitForAuth(authService, requestId)
-            settings.storeAuth(authDto.toAuth())
+            settings.auth = authDto.toAuth()
             startActivity(Intent(this@AuthActivity, ProjectsActivity::class.java))
             finish()
         }

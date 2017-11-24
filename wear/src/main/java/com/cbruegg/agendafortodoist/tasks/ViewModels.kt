@@ -2,6 +2,7 @@ package com.cbruegg.agendafortodoist.tasks
 
 import android.arch.lifecycle.ViewModel
 import com.cbruegg.agendafortodoist.R
+import com.cbruegg.agendafortodoist.Settings
 import com.cbruegg.agendafortodoist.shared.todoist.TaskDto
 import com.cbruegg.agendafortodoist.shared.todoist.TodoistApi
 import com.cbruegg.agendafortodoist.util.LiveData
@@ -19,7 +20,8 @@ import java.io.IOException
 class TasksViewModel(
         val projectId: Long,
         private val todoist: TodoistApi,
-        private val requestIdGenerator: UniqueRequestIdGenerator
+        private val requestIdGenerator: UniqueRequestIdGenerator,
+        private val settings: Settings
 ) : ViewModel() {
 
     private val _taskViewModels = MutableLiveData(emptyList<TaskViewModel>())
@@ -36,8 +38,14 @@ class TasksViewModel(
 
     var onAuthError: () -> Unit = {}
     var skipNextResumeReload = false
+    var alert: (Int) -> Unit = {}
 
     private fun reload() {
+        if (!settings.showedCompleteTaskIntro) {
+            alert(R.string.double_tap_to_complete_task)
+            settings.showedCompleteTaskIntro = true
+        }
+
         launch(UI) {
             _isLoading.data = true
             _showList.data = false

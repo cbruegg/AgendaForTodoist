@@ -17,4 +17,5 @@
     <string name="auth_sign_in_loading">Loading sign-in…</string>
     <string name="send_to_phone">Send to phone</string>
     <string name="speech_input_error">Speech input error.</string>
+    <string name="double_tap_to_complete_task">Double tap a task to complete it.</string>
 </resources>

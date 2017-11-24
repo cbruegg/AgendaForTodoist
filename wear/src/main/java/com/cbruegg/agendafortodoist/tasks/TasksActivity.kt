@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.support.v7.app.AlertDialog
 import android.support.wear.ambient.AmbientMode
 import android.support.wear.widget.WearableLinearLayoutManager
 import android.support.wear.widget.WearableRecyclerView
@@ -84,7 +85,7 @@ class TasksActivity : WearableActivity() {
 
         viewModel = viewModel {
             val todoist = app.netComponent.todoist()
-            TasksViewModel(projectId, todoist, UniqueRequestIdGenerator)
+            TasksViewModel(projectId, todoist, UniqueRequestIdGenerator, app.applicationComponent.settings())
         }.also {
             it.onAuthError = {
                 startActivity(Intent(this, AuthActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) })
@@ -102,6 +103,12 @@ class TasksActivity : WearableActivity() {
         }
         viewModel.showList.observe(this) {
             tasksList.visibility = if (it) View.VISIBLE else View.INVISIBLE
+        }
+        viewModel.alert = {
+            AlertDialog.Builder(this)
+                    .setMessage(it)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show()
         }
     }
 
