@@ -8,13 +8,17 @@ import com.cbruegg.agendafortodoist.shared.todoist.todoist
 
 class App : Application() {
 
-    val applicationComponent: ApplicationComponent = DaggerApplicationComponent.builder()
-            .applicationModule(ApplicationModule(this))
-            .build()
+    val applicationComponent: ApplicationComponent by lazy {
+        DaggerApplicationComponent.builder()
+                .applicationModule(ApplicationModule(this))
+                .build()
+    }
 
-    val netComponent: NetComponent = DaggerNetComponent.builder()
-            .netModule(NetModule(todoist(applicationComponent.accessTokenGetter()), authService))
-            .build()
+    val netComponent: NetComponent by lazy {
+        DaggerNetComponent.builder()
+                .netModule(NetModule(todoist(applicationComponent.accessTokenGetter()), authService))
+                .build()
+    }
 
 }
 
