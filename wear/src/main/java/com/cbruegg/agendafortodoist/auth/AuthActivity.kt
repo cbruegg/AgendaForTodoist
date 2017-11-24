@@ -12,6 +12,8 @@ import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
 import com.cbruegg.agendafortodoist.app
 import com.cbruegg.agendafortodoist.projects.ProjectsActivity
+import com.cbruegg.agendafortodoist.shared.auth.AuthDto
+import com.cbruegg.agendafortodoist.shared.auth.AuthServiceApi
 import com.google.android.wearable.intent.RemoteIntent
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.delay
@@ -23,8 +25,6 @@ import java.io.IOException
 import java.util.UUID
 
 class AuthActivity : WearableActivity() {
-
-    // TODO Refactor this
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,34 +52,39 @@ class AuthActivity : WearableActivity() {
 
             message.text = getString(R.string.auth_visit_template, shortUrl)
             if (PhoneDeviceType.getPhoneDeviceType(this@AuthActivity) != PhoneDeviceType.DEVICE_TYPE_ERROR_UNKNOWN) {
-                sendToPhone.setOnClickListener {
-                    val intent = Intent(ACTION_VIEW)
-                            .addCategory(Intent.CATEGORY_BROWSABLE)
-                            .setData(Uri.parse(shortUrl))
-
-                    RemoteIntent.startRemoteActivity(this@AuthActivity, intent, null)
-                }
+                sendToPhone.setOnClickListener { sendUrlToPhone(shortUrl) }
                 sendToPhone.visibility = View.VISIBLE
             }
 
-            while (true) {
-                delay(1000)
-                val resp = try {
-                    authService.authCode(requestId).awaitResponse()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    continue
-                }
+            val authDto = waitForAuth(authService, requestId)
+            settings.storeAuth(authDto.toAuth())
+            startActivity(Intent(this@AuthActivity, ProjectsActivity::class.java))
+            finish()
+        }
+    }
 
-                if (resp.isSuccessful) {
-                    val authDto = resp.body() ?: throw NullPointerException("Received invalid DTO!")
-                    settings.storeAuth(authDto.toAuth())
-                    startActivity(Intent(this@AuthActivity, ProjectsActivity::class.java))
-                    finish()
-                    break
-                }
+    private suspend fun waitForAuth(authService: AuthServiceApi, requestId: String): AuthDto {
+        while (true) {
+            delay(1000)
+            val resp = try {
+                authService.authCode(requestId).awaitResponse()
+            } catch (e: IOException) {
+                e.printStackTrace()
+                continue
+            }
+
+            if (resp.isSuccessful) {
+                return resp.body() ?: throw NullPointerException("Received invalid DTO!")
             }
         }
+    }
+
+    private fun sendUrlToPhone(url: String) {
+        val intent = Intent(ACTION_VIEW)
+                .addCategory(Intent.CATEGORY_BROWSABLE)
+                .setData(Uri.parse(url))
+
+        RemoteIntent.startRemoteActivity(this@AuthActivity, intent, null)
     }
 }
 
