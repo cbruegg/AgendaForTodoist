@@ -2,9 +2,8 @@ package com.cbruegg.agendafortodoist.tasks
 
 import android.arch.lifecycle.ViewModel
 import com.cbruegg.agendafortodoist.R
-import com.cbruegg.agendafortodoist.shared.TaskDto
-import com.cbruegg.agendafortodoist.shared.TodoistApi
-import com.cbruegg.agendafortodoist.shared.todoist
+import com.cbruegg.agendafortodoist.shared.todoist.TaskDto
+import com.cbruegg.agendafortodoist.shared.todoist.TodoistApi
 import com.cbruegg.agendafortodoist.util.LiveData
 import com.cbruegg.agendafortodoist.util.MutableLiveData
 import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
@@ -43,7 +42,7 @@ class TasksViewModel(
             _showList.data = false
             try {
                 val tasks = todoist.tasks(projectId).await()
-                _taskViewModels.data = tasks.map { TaskViewModel(it, requestIdGenerator) }
+                _taskViewModels.data = tasks.map { TaskViewModel(it, requestIdGenerator, todoist) }
                 _bigMessageId.data = if (tasks.isEmpty()) R.string.no_tasks else null
             } catch (e: HttpException) {
                 _taskViewModels.data = emptyList()
@@ -63,7 +62,8 @@ class TaskViewModel(
         val content: String,
         val id: Long,
         @Volatile var isCompleted: Boolean,
-        private val requestIdGenerator: UniqueRequestIdGenerator
+        private val requestIdGenerator: UniqueRequestIdGenerator,
+        private val todoist: TodoistApi
 ) : ViewModel() {
     private val _strikethrough = MutableLiveData(isCompleted)
     val strikethrough: LiveData<Boolean> = _strikethrough
@@ -106,7 +106,7 @@ class TaskViewModel(
                 todoist.closeTask(id, requestId).awaitResponse()
                 _strikethrough.data = true
             }
-        }  catch (e: HttpException) {
+        } catch (e: HttpException) {
             e.printStackTrace()
             _toast.data = R.string.network_error
         }
@@ -121,7 +121,7 @@ class TaskViewModel(
                 todoist.reopenTask(id, requestId).awaitResponse()
                 _strikethrough.data = false
             }
-        }  catch (e: HttpException) {
+        } catch (e: HttpException) {
             e.printStackTrace()
             _toast.data = R.string.network_error
         }
@@ -129,4 +129,8 @@ class TaskViewModel(
     }
 }
 
-fun TaskViewModel(taskDto: TaskDto, requestIdGenerator: UniqueRequestIdGenerator) = TaskViewModel(taskDto.content, taskDto.id, taskDto.isCompleted, requestIdGenerator)
+fun TaskViewModel(
+        taskDto: TaskDto,
+        requestIdGenerator: UniqueRequestIdGenerator,
+        todoist: TodoistApi
+) = TaskViewModel(taskDto.content, taskDto.id, taskDto.isCompleted, requestIdGenerator, todoist)

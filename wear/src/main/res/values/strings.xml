@@ -12,4 +12,7 @@
     <string name="network_error">Network error.</string>
     <string name="uncomplete">Uncomplete</string>
     <string name="complete">Complete</string>
+    <string name="auth_visit_template">Sign in on\n%1$s</string>
+    <string name="auth_sign_in_loading">Loading sign-in…</string>
+    <string name="send_to_phone">Send to phone</string>
 </resources>

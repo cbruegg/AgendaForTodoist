@@ -1,4 +1,4 @@
-package com.cbruegg.agendafortodoist.shared
+package com.cbruegg.agendafortodoist.shared.todoist
 
 import com.squareup.moshi.KotlinJsonAdapterFactory
 import com.squareup.moshi.Moshi
@@ -14,7 +14,7 @@ import retrofit2.http.Query
 
 private const val API_BASE = "https://beta.todoist.com/API/v8/"
 
-val todoist: TodoistApi by lazy {
+fun todoist(accessToken: String): TodoistApi {
     val moshi = Moshi.Builder()
             .add(KotlinJsonAdapterFactory())
             .build()
@@ -23,7 +23,7 @@ val todoist: TodoistApi by lazy {
             .addInterceptor { chain ->
                 val curUrl = chain.request().url()
                 val newUrl = curUrl.newBuilder()
-                        .addQueryParameter("token", BuildConfig.API_ID)
+                        .addQueryParameter("token", accessToken)
                         .build()
 
                 chain.proceed(
@@ -40,7 +40,7 @@ val todoist: TodoistApi by lazy {
             .client(okHttp)
             .build()
 
-    retrofit.create(TodoistApi::class.java)
+    return retrofit.create(TodoistApi::class.java)
 }
 
 private const val REQ_ID_HEADER = "X-Request-Id"

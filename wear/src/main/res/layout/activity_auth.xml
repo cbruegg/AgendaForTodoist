@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.wear.widget.BoxInsetLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.cbruegg.agendafortodoist.auth.AuthActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:animateLayoutChanges="true"
+        android:orientation="vertical"
+        app:boxedEdges="all">
+
+        <TextView
+            android:id="@+id/auth_message"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="@string/auth_sign_in_loading"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/auth_send_to_phone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:text="@string/send_to_phone"
+            android:visibility="gone" />
+    </LinearLayout>
+
+</android.support.wear.widget.BoxInsetLayout>

@@ -2,7 +2,7 @@ package com.cbruegg.agendafortodoist.task
 
 import android.arch.lifecycle.ViewModel
 import com.cbruegg.agendafortodoist.R
-import com.cbruegg.agendafortodoist.shared.TodoistApi
+import com.cbruegg.agendafortodoist.shared.todoist.TodoistApi
 import com.cbruegg.agendafortodoist.util.LiveData
 import com.cbruegg.agendafortodoist.util.MutableLiveData
 import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator

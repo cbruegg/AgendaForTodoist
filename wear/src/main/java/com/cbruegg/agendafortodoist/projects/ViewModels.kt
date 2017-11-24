@@ -3,8 +3,8 @@ package com.cbruegg.agendafortodoist.projects
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.ViewModel
 import com.cbruegg.agendafortodoist.R
-import com.cbruegg.agendafortodoist.shared.ProjectDto
-import com.cbruegg.agendafortodoist.shared.TodoistApi
+import com.cbruegg.agendafortodoist.shared.todoist.ProjectDto
+import com.cbruegg.agendafortodoist.shared.todoist.TodoistApi
 import com.cbruegg.agendafortodoist.util.MutableLiveData
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch

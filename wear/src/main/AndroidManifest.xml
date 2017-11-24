@@ -45,6 +45,9 @@
             android:name=".task.TaskActivity"
             android:label="@string/title_activity_task"
             android:theme="@style/AppTheme" />
+        <activity
+            android:name=".auth.AuthActivity"
+            android:theme="@style/AppTheme" />
     </application>
 
 </manifest>

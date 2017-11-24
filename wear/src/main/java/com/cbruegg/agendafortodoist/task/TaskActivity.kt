@@ -11,7 +11,8 @@ import android.widget.TextView
 import android.widget.Toast
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
-import com.cbruegg.agendafortodoist.shared.todoist
+import com.cbruegg.agendafortodoist.Settings
+import com.cbruegg.agendafortodoist.shared.todoist.todoist
 import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.util.observe
 import com.cbruegg.agendafortodoist.util.viewModel
@@ -59,6 +60,7 @@ class TaskActivity : WearableActivity() {
 
         val contentView = findViewById<TextView>(R.id.task_content)
 
+        val todoist = todoist(Settings(this).retrieveAuth().accessToken)
         val viewModel = viewModel {
             TaskViewModel(taskContent, taskId, taskIsCompleted, todoist, UniqueRequestIdGenerator)
         }
