@@ -37,8 +37,11 @@ class TasksViewModel(
     val showList: LiveData<Boolean> = _showList
 
     var onAuthError: () -> Unit = {}
-    var skipNextResumeReload = false
     var alert: (Int) -> Unit = {}
+
+    fun notifyCompletedStateChanged(taskId: Long, isCompleted: Boolean) {
+        _taskViewModels.data.firstOrNull { it.id == taskId }?.notifyCompletedStateChangedExternally(isCompleted)
+    }
 
     private fun reload() {
         if (!settings.showedCompleteTaskIntro) {
@@ -62,11 +65,7 @@ class TasksViewModel(
         }
     }
 
-    fun onResume() {
-        if (skipNextResumeReload) {
-            skipNextResumeReload = false
-            return
-        }
+    fun onCreate() {
         reload()
     }
 }
@@ -74,7 +73,7 @@ class TasksViewModel(
 class TaskViewModel(
         val content: String,
         val id: Long,
-        @Volatile var isCompleted: Boolean,
+        isCompleted: Boolean,
         private val requestIdGenerator: UniqueRequestIdGenerator,
         private val todoist: TodoistApi,
         private val onAuthError: () -> Unit
@@ -87,6 +86,10 @@ class TaskViewModel(
 
     var toast: (Int) -> Unit = {}
 
+    @Volatile
+    var isCompleted = isCompleted
+        private set
+
     private val lock = Mutex()
 
     fun onDoubleTab() {
@@ -95,6 +98,11 @@ class TaskViewModel(
 
     fun onSwipe() {
         toggleCompletionState()
+    }
+
+    fun notifyCompletedStateChangedExternally(isCompleted: Boolean) {
+        this.isCompleted = isCompleted
+        _strikethrough.data = isCompleted
     }
 
     private fun toggleCompletionState() {

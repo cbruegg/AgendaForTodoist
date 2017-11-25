@@ -77,11 +77,9 @@ class ProjectsActivity : WearableActivity() {
         viewModel.bigMessageId.observe(this) {
             if (it != null) bigMessage.setText(it) else bigMessage.text = ""
         }
+
+        viewModel.onCreate()
     }
 
-    override fun onResume() {
-        super.onResume()
-        viewModel.onResume()
-    }
 }
 

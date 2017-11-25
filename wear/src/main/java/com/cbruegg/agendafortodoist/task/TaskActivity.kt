@@ -17,8 +17,9 @@ import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.util.observe
 import com.cbruegg.agendafortodoist.util.viewModel
 
-const val RESULT_CHANGED = 1000
-const val RESULT_UNCHANGED = 1001
+const val RESULT_COMPLETED = 1000
+const val RESULT_UNCOMPLETED = 1001
+const val RESULT_INTENT_EXTRA_TASK_ID = "task_id"
 private const val EXTRA_TASK_CONTENT = "task_content"
 private const val EXTRA_TASK_ID = "task_id"
 private const val EXTRA_TASK_IS_COMPLETED = "task_is_completed"
@@ -87,7 +88,9 @@ class TaskActivity : WearableActivity() {
             Toast.makeText(this, it, Toast.LENGTH_LONG).show()
         }
         viewModel.isCompleted.observe(this) {
-            setResult(if (it != taskIsCompleted) RESULT_CHANGED else RESULT_UNCHANGED)
+            setResult(if (it) RESULT_COMPLETED else RESULT_UNCOMPLETED, Intent().apply {
+                putExtra(RESULT_INTENT_EXTRA_TASK_ID, taskId)
+            })
         }
         contentView.text = viewModel.taskContent
         completionButton.setOnClickListener { viewModel.onCompletionButtonClick() }

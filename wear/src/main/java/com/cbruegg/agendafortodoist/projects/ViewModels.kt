@@ -14,8 +14,6 @@ import java.io.IOException
 
 class ProjectsViewModel(private val todoist: TodoistApi) : ViewModel() {
 
-    private val reloadAfterMs = 60_000
-
     private val _projectViewModels = MutableLiveData(emptyList<ProjectViewModel>())
     val projectViewModels: LiveData<List<ProjectViewModel>> = _projectViewModels
 
@@ -27,14 +25,7 @@ class ProjectsViewModel(private val todoist: TodoistApi) : ViewModel() {
 
     var onAuthError: () -> Unit = {}
 
-    private var lastLoadMs = -1L
-
-    fun onResume() {
-        if (System.currentTimeMillis() < lastLoadMs + reloadAfterMs) {
-            return
-        }
-        lastLoadMs = System.currentTimeMillis()
-
+    fun onCreate() {
         launch(UI) {
             _isLoading.data = true
             try {

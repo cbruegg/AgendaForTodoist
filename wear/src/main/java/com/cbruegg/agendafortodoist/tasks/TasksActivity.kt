@@ -17,7 +17,9 @@ import com.cbruegg.agendafortodoist.WearableActivity
 import com.cbruegg.agendafortodoist.addtask.newAddTaskActivityIntent
 import com.cbruegg.agendafortodoist.app
 import com.cbruegg.agendafortodoist.auth.AuthActivity
-import com.cbruegg.agendafortodoist.task.RESULT_UNCHANGED
+import com.cbruegg.agendafortodoist.task.RESULT_COMPLETED
+import com.cbruegg.agendafortodoist.task.RESULT_INTENT_EXTRA_TASK_ID
+import com.cbruegg.agendafortodoist.task.RESULT_UNCOMPLETED
 import com.cbruegg.agendafortodoist.task.newTaskActivityIntent
 import com.cbruegg.agendafortodoist.util.CenterScrollLayoutCallback
 import com.cbruegg.agendafortodoist.util.ColorScaleListener
@@ -110,19 +112,22 @@ class TasksActivity : WearableActivity() {
                     .setPositiveButton(android.R.string.ok, null)
                     .show()
         }
+
+        viewModel.onCreate()
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_CODE_TASK) {
-            viewModel.skipNextResumeReload = resultCode == RESULT_UNCHANGED
+            val taskId = data!!.getLongExtra(RESULT_INTENT_EXTRA_TASK_ID, -1)
+            val isCompleted = when (resultCode) {
+                RESULT_COMPLETED -> true
+                RESULT_UNCOMPLETED -> false
+                else -> throw IllegalArgumentException("Unexpected result code!")
+            }
+            viewModel.notifyCompletedStateChanged(taskId, isCompleted)
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        viewModel.onResume()
-    }
 }
