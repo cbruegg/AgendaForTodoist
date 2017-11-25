@@ -1,8 +1,9 @@
 package com.cbruegg.agendafortodoist.util
 
 import kotlinx.coroutines.experimental.delay
+import kotlin.reflect.KClass
 
-suspend fun <T> retry(vararg handleTypes: Class<out Exception>, initialBackoffMs: Long = 500L, maxTries: Int = 3, f: suspend () -> T): T {
+suspend fun <T> retry(vararg handleTypes: KClass<out Exception>, initialBackoffMs: Long = 500L, maxTries: Int = 3, f: suspend () -> T): T {
     require(maxTries > 0) { "You must allow at least one try." }
 
     var backoffMs = initialBackoffMs
@@ -11,7 +12,7 @@ suspend fun <T> retry(vararg handleTypes: Class<out Exception>, initialBackoffMs
         try {
             return f()
         } catch (e: Exception) {
-            if (handleTypes.any { it.isAssignableFrom(e.javaClass) }) {
+            if (handleTypes.any { it.java.isAssignableFrom(e.javaClass) }) {
                 e.printStackTrace()
                 lastException = e
                 delay(backoffMs)

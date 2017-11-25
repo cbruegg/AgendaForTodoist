@@ -59,7 +59,7 @@ class AddTaskActivity : WearableActivity() {
             try {
                 val requestId = UniqueRequestIdGenerator.nextRequestId()
                 val projectId = intent.getLongExtra(EXTRA_PROJECT_ID, -1)
-                retry(HttpException::class.java, IOException::class.java) {
+                retry(HttpException::class, IOException::class) {
                     val resp = app.netComponent.todoist().addTask(requestId, NewTaskDto(spokenText, projectId))
                             .awaitResponse()
                     if (resp.code() !in 200..299) throw HttpException(resp)

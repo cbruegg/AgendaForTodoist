@@ -52,7 +52,7 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            retry(HttpException::class.java, IOException::class.java) {
+            retry(HttpException::class, IOException::class) {
                 todoist.closeTask(taskId, requestId).awaitResponse()
                 _completionButtonStringId.data = R.string.uncomplete
                 _strikethrough.data = true
@@ -77,7 +77,7 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            retry(HttpException::class.java, IOException::class.java) {
+            retry(HttpException::class, IOException::class) {
                 todoist.reopenTask(taskId, requestId).awaitResponse()
                 _completionButtonStringId.data = R.string.complete
                 _strikethrough.data = false
