@@ -1,16 +1,16 @@
 package com.cbruegg.agendafortodoist
 
-import android.app.Application
 import android.content.Context
 import android.support.v4.app.Fragment
+import com.cbruegg.agendafortodoist.shared.GoogleApiClientApplication
 import com.cbruegg.agendafortodoist.shared.auth.authService
 import com.cbruegg.agendafortodoist.shared.todoist.todoist
 
-class App : Application() {
+class App : GoogleApiClientApplication() {
 
     val applicationComponent: ApplicationComponent by lazy {
         DaggerApplicationComponent.builder()
-                .applicationModule(ApplicationModule(this))
+                .applicationModule(ApplicationModule(this, googleApiClient))
                 .build()
     }
 

@@ -28,6 +28,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     wearApp project(':wear')
-    implementation 'com.google.android.gms:play-services-wearable:11.6.0'
     implementation project(':shared')
 }

@@ -27,6 +27,7 @@ import com.cbruegg.agendafortodoist.util.ScaleListener
 import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.util.observe
 import com.cbruegg.agendafortodoist.util.viewModel
+import java.lang.ref.WeakReference
 
 private const val EXTRA_PROJECT_ID = "project_id"
 

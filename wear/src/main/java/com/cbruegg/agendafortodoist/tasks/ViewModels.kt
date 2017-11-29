@@ -3,14 +3,24 @@ package com.cbruegg.agendafortodoist.tasks
 import android.arch.lifecycle.ViewModel
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.Settings
+import com.cbruegg.agendafortodoist.shared.queuing.TaskCompletedStateChangeEvent
+import com.cbruegg.agendafortodoist.shared.queuing.toPutDataRequest
 import com.cbruegg.agendafortodoist.shared.todoist.TaskDto
 import com.cbruegg.agendafortodoist.shared.todoist.TodoistApi
+import com.cbruegg.agendafortodoist.tasks.TaskCompletionMarker.FailureType.AuthError
+import com.cbruegg.agendafortodoist.tasks.TaskCompletionMarker.FailureType.HttpError
+import com.cbruegg.agendafortodoist.tasks.TaskCompletionMarker.FailureType.IOError
 import com.cbruegg.agendafortodoist.util.LiveData
 import com.cbruegg.agendafortodoist.util.MutableLiveData
 import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.util.retry
+import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.PendingResult
+import com.google.android.gms.common.api.Result
+import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.experimental.suspendCancellableCoroutine
 import kotlinx.coroutines.experimental.sync.Mutex
 import retrofit2.HttpException
 import ru.gildor.coroutines.retrofit.await
@@ -74,9 +84,8 @@ class TaskViewModel(
         val content: String,
         val id: Long,
         isCompleted: Boolean,
-        private val requestIdGenerator: UniqueRequestIdGenerator,
-        private val todoist: TodoistApi,
-        private val onAuthError: () -> Unit
+        private val onAuthError: () -> Unit,
+        private val taskCompletionMarker: TaskCompletionMarker
 ) : ViewModel() {
     private val _strikethrough = MutableLiveData(isCompleted)
     val strikethrough: LiveData<Boolean> = _strikethrough
@@ -120,46 +129,86 @@ class TaskViewModel(
     }
 
     private fun markCompleted() = launch(UI) {
-        val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
-        try {
-            retry(HttpException::class, IOException::class) {
-                todoist.closeTask(id, requestId).awaitResponse()
-                _strikethrough.data = true
-            }
-        } catch (e: HttpException) {
-            if (e.response().code() == 401) {
-                onAuthError()
-            }
-            e.printStackTrace()
-            toast(R.string.http_error)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            toast(R.string.network_error)
+        val failureType = taskCompletionMarker.setCompletionState(id, true)
+        when (failureType) {
+            AuthError -> onAuthError()
+            HttpError -> toast(R.string.http_error)
+            IOError -> toast(R.string.network_error)
+            null -> _strikethrough.data = true
         }
         _isLoading.data = false
     }
 
     private fun markUncompleted() = launch(UI) {
-        val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
-        try {
-            retry(HttpException::class, IOException::class) {
-                todoist.reopenTask(id, requestId).awaitResponse()
-                _strikethrough.data = false
-            }
-        } catch (e: HttpException) {
-            if (e.response().code() == 401) {
-                onAuthError()
-            }
-            e.printStackTrace()
-            toast(R.string.http_error)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            toast(R.string.network_error)
+        val failureType = taskCompletionMarker.setCompletionState(id, false)
+        when (failureType) {
+            AuthError -> onAuthError()
+            HttpError -> toast(R.string.http_error)
+            IOError -> toast(R.string.network_error)
+            null -> _strikethrough.data = false
         }
         _isLoading.data = false
     }
+}
+
+interface TaskCompletionMarker {
+    enum class FailureType { AuthError, HttpError, IOError }
+
+    suspend fun setCompletionState(taskId: Long, isCompleted: Boolean): FailureType?
+}
+
+class CompanionAppCompletionMarker(private val googleApiClient: GoogleApiClient) : TaskCompletionMarker {
+    suspend override fun setCompletionState(taskId: Long, isCompleted: Boolean): TaskCompletionMarker.FailureType? {
+        val event = TaskCompletedStateChangeEvent(taskId, isCompleted)
+        val result = Wearable.DataApi.putDataItem(googleApiClient, event.toPutDataRequest()).awaitAsync()
+        return null
+    }
+}
+
+suspend fun <T : Result> PendingResult<T>.awaitAsync(): T = suspendCancellableCoroutine { continuation ->
+    setResultCallback { result ->
+        if (!continuation.isCancelled) {
+            continuation.resume(result)
+        }
+    }
+
+    continuation.invokeOnCompletion {
+        if (continuation.isCancelled) {
+            try {
+                cancel()
+            } catch (ignored: Throwable) {
+            }
+        }
+    }
+}
+
+class ApiTaskCompletionMarker(private val todoist: TodoistApi, private val requestIdGenerator: UniqueRequestIdGenerator) : TaskCompletionMarker {
+    suspend override fun setCompletionState(taskId: Long, isCompleted: Boolean): TaskCompletionMarker.FailureType? {
+        try {
+            val requestId = requestIdGenerator.nextRequestId()
+            retry(HttpException::class, IOException::class) {
+                if (isCompleted) {
+                    todoist.closeTask(taskId, requestId).awaitResponse()
+                } else {
+                    todoist.reopenTask(taskId, requestId).awaitResponse()
+                }
+            }
+            return null
+        } catch (e: HttpException) {
+            e.printStackTrace()
+            return if (e.response().code() == 401) {
+                AuthError
+            } else {
+                HttpError
+            }
+        } catch (e: IOException) {
+            e.printStackTrace()
+            return IOError
+        }
+    }
+
 }
 
 fun TaskViewModel(
@@ -167,4 +216,4 @@ fun TaskViewModel(
         requestIdGenerator: UniqueRequestIdGenerator,
         todoist: TodoistApi,
         onAuthError: () -> Unit
-) = TaskViewModel(taskDto.content, taskDto.id, taskDto.isCompleted, requestIdGenerator, todoist, onAuthError)
+) = TaskViewModel(taskDto.content, taskDto.id, taskDto.isCompleted, todoist, onAuthError)
