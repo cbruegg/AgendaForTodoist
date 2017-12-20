@@ -15,7 +15,7 @@ data class TaskDto(
         @Json(name = "project_id") val projectId: Long,
         @Json(name = "content") val content: String,
         @Json(name = "completed") val isCompleted: Boolean,
-        @Json(name = "label_ids") val labelIds: List<Int>?,
+        @Json(name = "label_ids") val labelIds: List<Long>?,
         @Json(name = "order") val order: Int,
         @Json(name = "indent") val indent: Int,
         @Json(name = "priority") val priority: Int,
