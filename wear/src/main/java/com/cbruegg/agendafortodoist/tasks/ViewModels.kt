@@ -59,6 +59,9 @@ class TasksViewModel(
             } catch (e: HttpException) {
                 _taskViewModels.data = emptyList()
                 _bigMessageId.data = R.string.network_error
+            } catch (e: IOException) {
+                _taskViewModels.data = emptyList()
+                _bigMessageId.data = R.string.network_error
             }
             _isLoading.data = false
             _showList.data = true
