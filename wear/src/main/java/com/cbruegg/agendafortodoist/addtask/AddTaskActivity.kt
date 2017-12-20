@@ -38,12 +38,11 @@ class AddTaskActivity : WearableActivity() {
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int,
-                                  data: Intent) {
+                                  data: Intent?) {
         if (requestCode == requestCodeSpeech) {
             if (resultCode == Activity.RESULT_OK) {
-                val results = data.getStringArrayListExtra(
-                        RecognizerIntent.EXTRA_RESULTS)
-                val spokenText = results[0]
+                val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
+                val spokenText = results?.getOrNull(0)
                 if (spokenText != null) {
                     onReceiveText(spokenText)
                 }
