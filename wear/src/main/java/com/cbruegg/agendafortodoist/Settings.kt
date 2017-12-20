@@ -4,7 +4,9 @@ import android.content.Context
 import com.cbruegg.agendafortodoist.auth.Auth
 import com.cbruegg.agendafortodoist.shared.todoist.AccessTokenGetter
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class Settings @Inject constructor(context: Context) {
     private val file = "app_prefs"
     private val keyAuthType = "auth_type"
