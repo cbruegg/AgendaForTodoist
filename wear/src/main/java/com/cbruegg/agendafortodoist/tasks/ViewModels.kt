@@ -18,10 +18,10 @@ import ru.gildor.coroutines.retrofit.awaitResponse
 import java.io.IOException
 
 class TasksViewModel(
-        val projectId: Long,
-        private val todoist: TodoistApi,
-        private val requestIdGenerator: UniqueRequestIdGenerator,
-        private val settings: Settings
+    val projectId: Long,
+    private val todoist: TodoistApi,
+    private val requestIdGenerator: UniqueRequestIdGenerator,
+    private val settings: Settings
 ) : ViewModel() {
 
     private val _taskViewModels = MutableLiveData(emptyList<TaskViewModel>())
@@ -74,12 +74,12 @@ class TasksViewModel(
 }
 
 class TaskViewModel(
-        val content: String,
-        val id: Long,
-        isCompleted: Boolean,
-        private val requestIdGenerator: UniqueRequestIdGenerator,
-        private val todoist: TodoistApi,
-        private val onAuthError: () -> Unit
+    val content: String,
+    val id: Long,
+    isCompleted: Boolean,
+    private val requestIdGenerator: UniqueRequestIdGenerator,
+    private val todoist: TodoistApi,
+    private val onAuthError: () -> Unit
 ) : ViewModel() {
     private val _strikethrough = MutableLiveData(isCompleted)
     val strikethrough: LiveData<Boolean> = _strikethrough
@@ -111,13 +111,16 @@ class TaskViewModel(
     private fun toggleCompletionState() {
         launch {
             if (lock.tryLock()) {
-                if (isCompleted) {
-                    markUncompleted().join()
-                } else {
-                    markCompleted().join()
+                try {
+                    if (isCompleted) {
+                        markUncompleted().join()
+                    } else {
+                        markCompleted().join()
+                    }
+                    isCompleted = !isCompleted
+                } finally {
+                    lock.unlock()
                 }
-                isCompleted = !isCompleted
-                lock.unlock()
             }
         }
     }
@@ -166,8 +169,8 @@ class TaskViewModel(
 }
 
 fun TaskViewModel(
-        taskDto: TaskDto,
-        requestIdGenerator: UniqueRequestIdGenerator,
-        todoist: TodoistApi,
-        onAuthError: () -> Unit
+    taskDto: TaskDto,
+    requestIdGenerator: UniqueRequestIdGenerator,
+    todoist: TodoistApi,
+    onAuthError: () -> Unit
 ) = TaskViewModel(taskDto.content, taskDto.id, taskDto.isCompleted, requestIdGenerator, todoist, onAuthError)
