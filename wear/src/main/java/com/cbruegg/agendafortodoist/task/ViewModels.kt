@@ -2,24 +2,23 @@ package com.cbruegg.agendafortodoist.task
 
 import android.arch.lifecycle.ViewModel
 import com.cbruegg.agendafortodoist.R
-import com.cbruegg.agendafortodoist.shared.todoist.TodoistApi
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistNetworkException
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepo
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepoException
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistServiceException
 import com.cbruegg.agendafortodoist.util.LiveData
 import com.cbruegg.agendafortodoist.util.MutableLiveData
 import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
-import com.cbruegg.agendafortodoist.util.retry
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
-import retrofit2.HttpException
-import ru.gildor.coroutines.retrofit.awaitResponse
-import java.io.IOException
 
 class TaskViewModel(
-        val taskContent: String,
-        val taskId: Long,
-        isCompleted: Boolean,
-        private val todoist: TodoistApi,
-        private val requestIdGenerator: UniqueRequestIdGenerator
+    val taskContent: String,
+    val taskId: Long,
+    isCompleted: Boolean,
+    private val todoist: TodoistRepo,
+    private val requestIdGenerator: UniqueRequestIdGenerator
 ) : ViewModel() {
 
     private val _completionButtonStringId = MutableLiveData(if (isCompleted) R.string.uncomplete else R.string.complete)
@@ -52,22 +51,26 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            retry(HttpException::class, IOException::class) {
-                todoist.closeTask(taskId, requestId).awaitResponse()
-                _completionButtonStringId.data = R.string.uncomplete
-                _strikethrough.data = true
-                _isCompleted.data = true
-                completionButtonAction = this@TaskViewModel::uncomplete
-            }
-        } catch (e: HttpException) {
-            if (e.response().code() == 401) {
-                onAuthError()
-            }
+            todoist.closeTask(taskId, requestId).await()
+            _completionButtonStringId.data = R.string.uncomplete
+            _strikethrough.data = true
+            _isCompleted.data = true
+            completionButtonAction = this@TaskViewModel::uncomplete
+        } catch (e: TodoistRepoException) {
             e.printStackTrace()
-            toast(R.string.http_error)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            toast(R.string.network_error)
+            when (e) {
+                is TodoistNetworkException -> {
+                    toast(R.string.network_error)
+                }
+                is TodoistServiceException.General -> {
+                    toast(R.string.http_error)
+                }
+                is TodoistServiceException.Auth -> {
+                    onAuthError()
+                    toast(R.string.http_error)
+                }
+            }
+
         }
         _isLoading.data = false
     }
@@ -77,22 +80,25 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            retry(HttpException::class, IOException::class) {
-                todoist.reopenTask(taskId, requestId).awaitResponse()
-                _completionButtonStringId.data = R.string.complete
-                _strikethrough.data = false
-                _isCompleted.data = false
-                completionButtonAction = this@TaskViewModel::complete
-            }
-        } catch (e: HttpException) {
-            if (e.response().code() == 401) {
-                onAuthError()
-            }
+            todoist.reopenTask(taskId, requestId).await()
+            _completionButtonStringId.data = R.string.complete
+            _strikethrough.data = false
+            _isCompleted.data = false
+            completionButtonAction = this@TaskViewModel::complete
+        } catch (e: TodoistRepoException) {
             e.printStackTrace()
-            toast(R.string.http_error)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            toast(R.string.network_error)
+            when (e) {
+                is TodoistNetworkException -> {
+                    toast(R.string.network_error)
+                }
+                is TodoistServiceException.General -> {
+                    toast(R.string.http_error)
+                }
+                is TodoistServiceException.Auth -> {
+                    onAuthError()
+                    toast(R.string.http_error)
+                }
+            }
         }
         _isLoading.data = false
     }

@@ -1,4 +1,4 @@
-package com.cbruegg.agendafortodoist.shared.todoist
+package com.cbruegg.agendafortodoist.shared.todoist.api
 
 import com.squareup.moshi.KotlinJsonAdapterFactory
 import com.squareup.moshi.Moshi
@@ -22,29 +22,29 @@ interface AccessTokenGetter {
 
 fun todoist(accessTokenGetter: AccessTokenGetter): TodoistApi {
     val moshi = Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
+        .add(KotlinJsonAdapterFactory())
+        .build()
 
     val okHttp = OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                val curUrl = chain.request().url()
-                val newUrl = curUrl.newBuilder()
-                        .addQueryParameter("token", accessTokenGetter.accessToken)
-                        .build()
+        .addInterceptor { chain ->
+            val curUrl = chain.request().url()
+            val newUrl = curUrl.newBuilder()
+                .addQueryParameter("token", accessTokenGetter.accessToken)
+                .build()
 
-                chain.proceed(
-                        chain.request().newBuilder()
-                                .url(newUrl)
-                                .build()
-                )
-            }
-            .build()
+            chain.proceed(
+                chain.request().newBuilder()
+                    .url(newUrl)
+                    .build()
+            )
+        }
+        .build()
 
     val retrofit = Retrofit.Builder()
-            .baseUrl(API_BASE)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .client(okHttp)
-            .build()
+        .baseUrl(API_BASE)
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .client(okHttp)
+        .build()
 
     return retrofit.create(TodoistApi::class.java)
 }
@@ -65,7 +65,8 @@ interface TodoistApi {
     @POST("tasks/{id}/reopen")
     fun reopenTask(@Path("id") taskId: Long, @Header(REQ_ID_HEADER) requestId: Int): Call<Void>
 
-    @POST("tasks") @Headers("Content-Type: application/json")
+    @POST("tasks")
+    @Headers("Content-Type: application/json")
     fun addTask(@Header(REQ_ID_HEADER) requestId: Int, @Body taskDto: NewTaskDto): Call<Void>
 }
 

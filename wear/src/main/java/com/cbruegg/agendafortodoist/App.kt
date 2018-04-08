@@ -4,7 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.support.v4.app.Fragment
 import com.cbruegg.agendafortodoist.shared.auth.authService
-import com.cbruegg.agendafortodoist.shared.todoist.todoist
+import com.cbruegg.agendafortodoist.shared.todoist.api.todoist
 
 class App : Application() {
 

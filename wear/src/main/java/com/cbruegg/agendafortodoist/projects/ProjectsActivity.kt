@@ -61,7 +61,7 @@ class ProjectsActivity : WearableActivity() {
         projectList.isEdgeItemsCenteringEnabled = true
         projectList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
         viewModel = viewModel {
-            ProjectsViewModel(app.netComponent.todoist())
+            ProjectsViewModel(app.netComponent.todoistRepo())
         }.also {
             it.onAuthError = {
                 startActivity(Intent(this, AuthActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) })

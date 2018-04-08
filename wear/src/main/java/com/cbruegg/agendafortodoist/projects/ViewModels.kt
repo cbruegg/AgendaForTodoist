@@ -2,17 +2,17 @@ package com.cbruegg.agendafortodoist.projects
 
 import android.arch.lifecycle.ViewModel
 import com.cbruegg.agendafortodoist.R
-import com.cbruegg.agendafortodoist.shared.todoist.ProjectDto
-import com.cbruegg.agendafortodoist.shared.todoist.TodoistApi
+import com.cbruegg.agendafortodoist.shared.todoist.repo.Project
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistNetworkException
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepo
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepoException
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistServiceException
 import com.cbruegg.agendafortodoist.util.LiveData
 import com.cbruegg.agendafortodoist.util.MutableLiveData
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
-import retrofit2.HttpException
-import ru.gildor.coroutines.retrofit.await
-import java.io.IOException
 
-class ProjectsViewModel(private val todoist: TodoistApi) : ViewModel() {
+class ProjectsViewModel(private val todoist: TodoistRepo) : ViewModel() {
 
     private val _projectViewModels = MutableLiveData(emptyList<ProjectViewModel>())
     val projectViewModels: LiveData<List<ProjectViewModel>> = _projectViewModels
@@ -33,15 +33,20 @@ class ProjectsViewModel(private val todoist: TodoistApi) : ViewModel() {
                 val projectVms = projects.map { ProjectViewModel(it) }
                 _projectViewModels.data = projectVms
                 _bigMessageId.data = null
-            } catch (e: IOException) {
+            } catch (e: TodoistRepoException) {
                 _projectViewModels.data = emptyList()
-                _bigMessageId.data = R.string.network_error
-            } catch (e: HttpException) {
-                if (e.response().code() == 401) {
-                    onAuthError()
+                when (e) {
+                    is TodoistNetworkException -> {
+                        _bigMessageId.data = R.string.network_error
+                    }
+                    is TodoistServiceException.General -> {
+                        _bigMessageId.data = R.string.http_error
+                    }
+                    is TodoistServiceException.Auth -> {
+                        onAuthError()
+                        _bigMessageId.data = R.string.http_error
+                    }
                 }
-                _projectViewModels.data = emptyList()
-                _bigMessageId.data = R.string.http_error
             }
             _isLoading.data = false
         }
@@ -49,11 +54,11 @@ class ProjectsViewModel(private val todoist: TodoistApi) : ViewModel() {
 }
 
 data class ProjectViewModel(
-        val name: String,
-        val id: Long,
-        val indentPrefix: String
+    val name: String,
+    val id: Long,
+    val indentPrefix: String
 ) : ViewModel()
 
 
 private val indentLevelSymbols = arrayOf("", "•\t", "‣\t", "◦\t")
-fun ProjectViewModel(projectDto: ProjectDto) = ProjectViewModel(projectDto.name, projectDto.id, indentLevelSymbols[projectDto.indent - 1])
+fun ProjectViewModel(project: Project) = ProjectViewModel(project.name, project.id, indentLevelSymbols[project.indent - 1])

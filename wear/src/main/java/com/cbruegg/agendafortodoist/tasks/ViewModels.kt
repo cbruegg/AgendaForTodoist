@@ -3,23 +3,21 @@ package com.cbruegg.agendafortodoist.tasks
 import android.arch.lifecycle.ViewModel
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.Settings
-import com.cbruegg.agendafortodoist.shared.todoist.TaskDto
-import com.cbruegg.agendafortodoist.shared.todoist.TodoistApi
+import com.cbruegg.agendafortodoist.shared.todoist.repo.Task
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistNetworkException
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepo
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepoException
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistServiceException
 import com.cbruegg.agendafortodoist.util.LiveData
 import com.cbruegg.agendafortodoist.util.MutableLiveData
 import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
-import com.cbruegg.agendafortodoist.util.retry
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.sync.Mutex
-import retrofit2.HttpException
-import ru.gildor.coroutines.retrofit.await
-import ru.gildor.coroutines.retrofit.awaitResponse
-import java.io.IOException
 
 class TasksViewModel(
     val projectId: Long,
-    private val todoist: TodoistApi,
+    private val todoist: TodoistRepo,
     private val requestIdGenerator: UniqueRequestIdGenerator,
     private val settings: Settings
 ) : ViewModel() {
@@ -56,12 +54,16 @@ class TasksViewModel(
                 val tasks = todoist.tasks(projectId).await()
                 _taskViewModels.data = tasks.map { TaskViewModel(it, requestIdGenerator, todoist, onAuthError) }
                 _bigMessageId.data = if (tasks.isEmpty()) R.string.no_tasks else null
-            } catch (e: HttpException) {
+            } catch (e: TodoistRepoException) {
                 _taskViewModels.data = emptyList()
-                _bigMessageId.data = R.string.network_error
-            } catch (e: IOException) {
-                _taskViewModels.data = emptyList()
-                _bigMessageId.data = R.string.network_error
+                when (e) {
+                    is TodoistNetworkException -> {
+                        _bigMessageId.data = R.string.network_error
+                    }
+                    is TodoistServiceException -> {
+                        _bigMessageId.data = R.string.http_error
+                    }
+                }
             }
             _isLoading.data = false
             _showList.data = true
@@ -78,7 +80,7 @@ class TaskViewModel(
     val id: Long,
     isCompleted: Boolean,
     private val requestIdGenerator: UniqueRequestIdGenerator,
-    private val todoist: TodoistApi,
+    private val todoist: TodoistRepo,
     private val onAuthError: () -> Unit
 ) : ViewModel() {
     private val _strikethrough = MutableLiveData(isCompleted)
@@ -129,19 +131,22 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            retry(HttpException::class, IOException::class) {
-                todoist.closeTask(id, requestId).awaitResponse()
-                _strikethrough.data = true
-            }
-        } catch (e: HttpException) {
-            if (e.response().code() == 401) {
-                onAuthError()
-            }
+            todoist.closeTask(id, requestId).await()
+            _strikethrough.data = true
+        } catch (e: TodoistRepoException) {
             e.printStackTrace()
-            toast(R.string.http_error)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            toast(R.string.network_error)
+            when (e) {
+                is TodoistNetworkException -> {
+                    toast(R.string.network_error)
+                }
+                is TodoistServiceException.General -> {
+                    toast(R.string.http_error)
+                }
+                is TodoistServiceException.Auth -> {
+                    onAuthError()
+                    toast(R.string.http_error)
+                }
+            }
         }
         _isLoading.data = false
     }
@@ -150,27 +155,30 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            retry(HttpException::class, IOException::class) {
-                todoist.reopenTask(id, requestId).awaitResponse()
-                _strikethrough.data = false
-            }
-        } catch (e: HttpException) {
-            if (e.response().code() == 401) {
-                onAuthError()
-            }
+            todoist.reopenTask(id, requestId).await()
+            _strikethrough.data = false
+        } catch (e: TodoistRepoException) {
             e.printStackTrace()
-            toast(R.string.http_error)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            toast(R.string.network_error)
+            when (e) {
+                is TodoistNetworkException -> {
+                    toast(R.string.network_error)
+                }
+                is TodoistServiceException.General -> {
+                    toast(R.string.http_error)
+                }
+                is TodoistServiceException.Auth -> {
+                    onAuthError()
+                    toast(R.string.http_error)
+                }
+            }
         }
         _isLoading.data = false
     }
 }
 
 fun TaskViewModel(
-    taskDto: TaskDto,
+    task: Task,
     requestIdGenerator: UniqueRequestIdGenerator,
-    todoist: TodoistApi,
+    todoist: TodoistRepo,
     onAuthError: () -> Unit
-) = TaskViewModel(taskDto.content, taskDto.id, taskDto.isCompleted, requestIdGenerator, todoist, onAuthError)
+) = TaskViewModel(task.content, task.id, task.isCompleted, requestIdGenerator, todoist, onAuthError)

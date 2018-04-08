@@ -1,4 +1,4 @@
-package com.cbruegg.agendafortodoist.shared.todoist
+package com.cbruegg.agendafortodoist.shared.todoist.api
 
 import com.squareup.moshi.Json
 

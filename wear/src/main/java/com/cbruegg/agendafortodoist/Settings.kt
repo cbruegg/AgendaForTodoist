@@ -2,7 +2,7 @@ package com.cbruegg.agendafortodoist
 
 import android.content.Context
 import com.cbruegg.agendafortodoist.auth.Auth
-import com.cbruegg.agendafortodoist.shared.todoist.AccessTokenGetter
+import com.cbruegg.agendafortodoist.shared.todoist.api.AccessTokenGetter
 import javax.inject.Inject
 import javax.inject.Singleton
 

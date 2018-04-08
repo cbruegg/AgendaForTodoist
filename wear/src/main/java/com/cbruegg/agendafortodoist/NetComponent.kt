@@ -1,11 +1,11 @@
 package com.cbruegg.agendafortodoist
 
 import com.cbruegg.agendafortodoist.shared.auth.AuthServiceApi
-import com.cbruegg.agendafortodoist.shared.todoist.TodoistApi
+import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.CachedTodoistRepo
 import dagger.Component
 
-@Component(modules = arrayOf(NetModule::class))
+@Component(modules = [(NetModule::class)])
 interface NetComponent {
-    fun todoist(): TodoistApi
     fun authService(): AuthServiceApi
+    fun todoistRepo(): CachedTodoistRepo
 }

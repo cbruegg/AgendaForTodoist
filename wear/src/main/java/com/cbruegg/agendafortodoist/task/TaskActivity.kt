@@ -64,7 +64,7 @@ class TaskActivity : WearableActivity() {
 
         val contentView = findViewById<TextView>(R.id.task_content)
 
-        val todoist = app.netComponent.todoist()
+        val todoist = app.netComponent.todoistRepo()
         viewModel = viewModel {
             TaskViewModel(taskContent, taskId, taskIsCompleted, todoist, UniqueRequestIdGenerator)
         }

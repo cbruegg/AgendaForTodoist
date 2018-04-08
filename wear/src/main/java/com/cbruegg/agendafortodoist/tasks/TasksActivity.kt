@@ -86,7 +86,7 @@ class TasksActivity : WearableActivity() {
         }
 
         viewModel = viewModel {
-            val todoist = app.netComponent.todoist()
+            val todoist = app.netComponent.todoistRepo()
             TasksViewModel(projectId, todoist, UniqueRequestIdGenerator, app.applicationComponent.settings())
         }.also {
             it.onAuthError = {
