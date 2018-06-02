@@ -1,4 +1,4 @@
-package com.cbruegg.agendafortodoist.util
+package com.cbruegg.agendafortodoist.shared.util
 
 import java.util.Random
 

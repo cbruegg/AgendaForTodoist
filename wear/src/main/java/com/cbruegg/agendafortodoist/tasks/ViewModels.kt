@@ -8,9 +8,9 @@ import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistNetworkException
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepo
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepoException
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistServiceException
+import com.cbruegg.agendafortodoist.shared.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.util.LiveData
 import com.cbruegg.agendafortodoist.util.MutableLiveData
-import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.sync.Mutex
@@ -38,7 +38,7 @@ class TasksViewModel(
     var alert: (Int) -> Unit = {}
 
     fun notifyCompletedStateChanged(taskId: Long, isCompleted: Boolean) {
-        _taskViewModels.data.firstOrNull { it.id == taskId }?.notifyCompletedStateChangedExternally(isCompleted)
+        _taskViewModels.data.firstOrNull { it.task.id == taskId }?.notifyCompletedStateChangedExternally(isCompleted)
     }
 
     private fun reload() {
@@ -76,14 +76,12 @@ class TasksViewModel(
 }
 
 class TaskViewModel(
-    val content: String,
-    val id: Long,
-    isCompleted: Boolean,
+    val task: Task,
     private val requestIdGenerator: UniqueRequestIdGenerator,
     private val todoist: TodoistRepo,
     private val onAuthError: () -> Unit
 ) : ViewModel() {
-    private val _strikethrough = MutableLiveData(isCompleted)
+    private val _strikethrough = MutableLiveData(task.isCompleted)
     val strikethrough: LiveData<Boolean> = _strikethrough
 
     private val _isLoading = MutableLiveData(false)
@@ -92,7 +90,7 @@ class TaskViewModel(
     var toast: (Int) -> Unit = {}
 
     @Volatile
-    var isCompleted = isCompleted
+    var isCompleted = task.isCompleted
         private set
 
     private val lock = Mutex()
@@ -131,7 +129,7 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            todoist.closeTask(id, requestId).await()
+            todoist.closeTask(task, requestId).await()
             _strikethrough.data = true
         } catch (e: TodoistRepoException) {
             e.printStackTrace()
@@ -155,7 +153,7 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            todoist.reopenTask(id, requestId).await()
+            todoist.reopenTask(task, requestId).await()
             _strikethrough.data = false
         } catch (e: TodoistRepoException) {
             e.printStackTrace()
@@ -175,10 +173,3 @@ class TaskViewModel(
         _isLoading.data = false
     }
 }
-
-fun TaskViewModel(
-    task: Task,
-    requestIdGenerator: UniqueRequestIdGenerator,
-    todoist: TodoistRepo,
-    onAuthError: () -> Unit
-) = TaskViewModel(task.content, task.id, task.isCompleted, requestIdGenerator, todoist, onAuthError)

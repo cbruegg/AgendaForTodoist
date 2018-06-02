@@ -24,7 +24,7 @@ import com.cbruegg.agendafortodoist.task.newTaskActivityIntent
 import com.cbruegg.agendafortodoist.util.CenterScrollLayoutCallback
 import com.cbruegg.agendafortodoist.util.ColorScaleListener
 import com.cbruegg.agendafortodoist.util.ScaleListener
-import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
+import com.cbruegg.agendafortodoist.shared.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.util.observe
 import com.cbruegg.agendafortodoist.util.viewModel
 
@@ -71,7 +71,7 @@ class TasksActivity : WearableActivity() {
         ))
 
         val adapter = TasksAdapter(emptyList(), this) {
-            startActivityForResult(newTaskActivityIntent(this, it.content, it.id, it.isCompleted), REQUEST_CODE_TASK)
+            startActivityForResult(newTaskActivityIntent(this, it.task), REQUEST_CODE_TASK)
         }
         val tasksList = findViewById<WearableRecyclerView>(R.id.tasks)
         val progressBar = findViewById<ProgressBar>(R.id.tasks_progress)

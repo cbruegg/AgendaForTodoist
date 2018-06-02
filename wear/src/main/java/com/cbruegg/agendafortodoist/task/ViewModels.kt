@@ -2,40 +2,39 @@ package com.cbruegg.agendafortodoist.task
 
 import android.arch.lifecycle.ViewModel
 import com.cbruegg.agendafortodoist.R
+import com.cbruegg.agendafortodoist.shared.todoist.repo.Task
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistNetworkException
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepo
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepoException
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistServiceException
+import com.cbruegg.agendafortodoist.shared.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.util.LiveData
 import com.cbruegg.agendafortodoist.util.MutableLiveData
-import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
 import kotlinx.coroutines.experimental.Job
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 
 class TaskViewModel(
-    val taskContent: String,
-    val taskId: Long,
-    isCompleted: Boolean,
+    val task: Task,
     private val todoist: TodoistRepo,
     private val requestIdGenerator: UniqueRequestIdGenerator
 ) : ViewModel() {
 
-    private val _completionButtonStringId = MutableLiveData(if (isCompleted) R.string.uncomplete else R.string.complete)
+    private val _completionButtonStringId = MutableLiveData(if (task.isCompleted) R.string.uncomplete else R.string.complete)
     val completionButtonStringId: MutableLiveData<Int> = _completionButtonStringId
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _strikethrough = MutableLiveData(isCompleted)
+    private val _strikethrough = MutableLiveData(task.isCompleted)
     val strikethrough: LiveData<Boolean> = _strikethrough
 
-    private val _isCompleted = MutableLiveData(isCompleted)
+    private val _isCompleted = MutableLiveData(task.isCompleted)
     val isCompleted: LiveData<Boolean> = _isCompleted
 
     var toast: (Int) -> Unit = {}
 
-    private var completionButtonAction: () -> Job = if (isCompleted) this::uncomplete else this::complete
+    private var completionButtonAction: () -> Job = if (task.isCompleted) this::uncomplete else this::complete
 
     var onAuthError: () -> Unit = {}
 
@@ -51,7 +50,7 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            todoist.closeTask(taskId, requestId).await()
+            todoist.closeTask(task, requestId).await()
             _completionButtonStringId.data = R.string.uncomplete
             _strikethrough.data = true
             _isCompleted.data = true
@@ -80,7 +79,7 @@ class TaskViewModel(
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
         try {
-            todoist.reopenTask(taskId, requestId).await()
+            todoist.reopenTask(task, requestId).await()
             _completionButtonStringId.data = R.string.complete
             _strikethrough.data = false
             _isCompleted.data = false

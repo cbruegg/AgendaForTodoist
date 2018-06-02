@@ -1,55 +1,58 @@
 package com.cbruegg.agendafortodoist.shared.todoist.repo
 
+import android.os.Parcelable
 import com.cbruegg.agendafortodoist.shared.todoist.api.NewTaskDto
 import com.cbruegg.agendafortodoist.shared.todoist.api.ProjectDto
 import com.cbruegg.agendafortodoist.shared.todoist.api.TaskDto
+import kotlinx.android.parcel.Parcelize
 
+@Parcelize
 data class Project(
     val id: Long,
     val name: String,
-    val order: Int,
-    val indent: Int,
-    val commentCount: Int
-) {
+    val indent: Int
+) : Parcelable {
     constructor(dto: ProjectDto) : this(
         id = dto.id,
         name = dto.name,
-        order = dto.order,
-        indent = dto.indent,
-        commentCount = dto.commentCount
+        indent = dto.indent
     )
 }
 
+@Parcelize
 data class Task(
     val id: Long,
-    val projectId: Long,
     val content: String,
     val isCompleted: Boolean,
-    val labelIds: List<Long>?,
-    val order: Int,
-    val indent: Int,
-    val priority: Int,
-    val url: String,
-    val commentCount: Int
-) {
+    val projectId: Long
+) : Parcelable {
     constructor(dto: TaskDto) : this(
         id = dto.id,
-        projectId = dto.projectId,
         content = dto.content,
         isCompleted = dto.isCompleted,
-        labelIds = dto.labelIds,
-        order = dto.order,
-        indent = dto.indent,
-        priority = dto.priority,
-        url = dto.url,
-        commentCount = dto.commentCount
+        projectId = dto.projectId
     )
+
+    /**
+     * True iff this task has not been submitted to the API
+     */
+    inline val isVirtual get() = id < 0
 }
 
+@Parcelize
 data class NewTask(
     val content: String,
-    val projectId: Long
-) {
+    val projectId: Long,
+    val virtualId: Long = generateVirtualId()
+) : Parcelable {
+    companion object {
+        private fun generateVirtualId() = (Math.random() * Long.MIN_VALUE).toLong()
+    }
+
+    init {
+        require(virtualId < 0)
+    }
+
     fun toNewTaskDto() = NewTaskDto(
         content = content,
         projectId = projectId

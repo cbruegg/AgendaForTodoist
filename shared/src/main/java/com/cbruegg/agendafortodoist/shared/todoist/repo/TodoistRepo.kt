@@ -9,9 +9,9 @@ interface TodoistRepo {
 
     fun tasks(projectId: Long? = null, labelId: Long? = null): Deferred<List<Task>>
 
-    fun closeTask(taskId: Long, requestId: Int): Deferred<Unit>
+    fun closeTask(task: Task, requestId: Int): Deferred<Unit>
 
-    fun reopenTask(taskId: Long, requestId: Int): Deferred<Unit>
+    fun reopenTask(task: Task, requestId: Int): Deferred<Unit>
 
     fun addTask(requestId: Int, task: NewTask): Deferred<Unit>
 }

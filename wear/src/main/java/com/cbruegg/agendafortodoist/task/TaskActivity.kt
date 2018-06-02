@@ -13,23 +13,20 @@ import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
 import com.cbruegg.agendafortodoist.app
 import com.cbruegg.agendafortodoist.auth.AuthActivity
-import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
+import com.cbruegg.agendafortodoist.shared.todoist.repo.Task
+import com.cbruegg.agendafortodoist.shared.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.util.observe
 import com.cbruegg.agendafortodoist.util.viewModel
 
 const val RESULT_COMPLETED = 1000
 const val RESULT_UNCOMPLETED = 1001
 const val RESULT_INTENT_EXTRA_TASK_ID = "task_id"
-private const val EXTRA_TASK_CONTENT = "task_content"
-private const val EXTRA_TASK_ID = "task_id"
-private const val EXTRA_TASK_IS_COMPLETED = "task_is_completed"
+private const val EXTRA_TASK = "task"
 
-fun newTaskActivityIntent(context: Context, taskContent: String, taskId: Long, taskIsCompleted: Boolean) =
-        Intent(context, TaskActivity::class.java).apply {
-            putExtra(EXTRA_TASK_CONTENT, taskContent)
-            putExtra(EXTRA_TASK_ID, taskId)
-            putExtra(EXTRA_TASK_IS_COMPLETED, taskIsCompleted)
-        }
+fun newTaskActivityIntent(context: Context, task: Task) =
+    Intent(context, TaskActivity::class.java).apply {
+        putExtra(EXTRA_TASK, task)
+    }
 
 class TaskActivity : WearableActivity() {
 
@@ -58,15 +55,13 @@ class TaskActivity : WearableActivity() {
         setContentView(R.layout.activity_task)
         setAmbientEnabled()
 
-        val taskContent = intent.getStringExtra(EXTRA_TASK_CONTENT)
-        val taskId = intent.getLongExtra(EXTRA_TASK_ID, -1)
-        val taskIsCompleted = intent.getBooleanExtra(EXTRA_TASK_IS_COMPLETED, false)
+        val task = intent.getParcelableExtra<Task>(EXTRA_TASK)
 
         val contentView = findViewById<TextView>(R.id.task_content)
 
         val todoist = app.netComponent.todoistRepo()
         viewModel = viewModel {
-            TaskViewModel(taskContent, taskId, taskIsCompleted, todoist, UniqueRequestIdGenerator)
+            TaskViewModel(task, todoist, UniqueRequestIdGenerator)
         }
         viewModel.onAuthError = {
             startActivity(Intent(this, AuthActivity::class.java).apply { addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) })
@@ -92,7 +87,7 @@ class TaskActivity : WearableActivity() {
                 putExtra(RESULT_INTENT_EXTRA_TASK_ID, taskId)
             })
         }
-        contentView.text = viewModel.taskContent
+        contentView.text = task.content
         completionButton.setOnClickListener { viewModel.onCompletionButtonClick() }
 
         viewModel.onCreate()

@@ -14,7 +14,7 @@ import com.cbruegg.agendafortodoist.shared.todoist.repo.NewTask
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistNetworkException
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepoException
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistServiceException
-import com.cbruegg.agendafortodoist.util.UniqueRequestIdGenerator
+import com.cbruegg.agendafortodoist.shared.util.UniqueRequestIdGenerator
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 
