@@ -13,7 +13,7 @@ open class LiveData<T>(initialValue: T) : LiveData<T>() {
         value = initialValue
     }
 
-    override fun getValue(): T = super.getValue() as T
+    override fun getValue(): T = super.getValue()!!
 }
 
 open class MutableLiveData<T>(initialValue: T) : com.cbruegg.agendafortodoist.util.LiveData<T>(initialValue) {

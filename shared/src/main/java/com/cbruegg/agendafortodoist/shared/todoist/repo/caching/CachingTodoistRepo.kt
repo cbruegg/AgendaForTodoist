@@ -27,19 +27,16 @@ class CachingTodoistRepo @Inject constructor(
 
     // TODO Save and restore this
     // TODO Schedule this to retry
-    private var updateSteps = UpdateSteps()
+    private var updateSteps = UpdateSteps.initial
 
     // TODO Make this caching
-
-    // TODO On any action, if updateSteps non-empty, enqueue the action
-    // TODO After processing queue, update UI
 
     fun processQueue() = async(coroutineContext) {
         try {
             errorHandled {
                 updateSteps.sendTo(todoist, requestIdGenerator.nextRequestId())
             }
-            updateSteps = UpdateSteps()
+            updateSteps = UpdateSteps.initial
         } catch (e: TodoistRepoException) {
             e.printStackTrace()
         }

@@ -3,15 +3,53 @@ package com.cbruegg.agendafortodoist.shared.todoist.repo.caching
 import com.cbruegg.agendafortodoist.shared.todoist.api.TodoistApi
 import com.cbruegg.agendafortodoist.shared.todoist.repo.NewTask
 import com.cbruegg.agendafortodoist.shared.todoist.repo.Task
+import kotlinx.serialization.KInput
+import kotlinx.serialization.KOutput
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.PolymorphicSerializer
+import kotlinx.serialization.SerialContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
+import kotlinx.serialization.internal.SerialClassDescImpl
 import retrofit2.HttpException
 import ru.gildor.coroutines.retrofit.awaitResponse
 
+@Serializable
 sealed class UpdateStep {
     abstract suspend fun sendTo(todoist: TodoistApi, requestId: Int)
     abstract fun applyTo(tasks: List<Task>): List<Task>
 }
 
-class UpdateSteps(private val steps: List<UpdateStep> = emptyList()) : UpdateStep() {
+fun List<UpdateStep>.toUpdateSteps() = fold(UpdateSteps.initial) { acc, updateStep -> acc + updateStep }
+
+@Serializable
+data class UpdateSteps private constructor(private val steps: List<UpdateStep> = emptyList()) : UpdateStep() {
+
+    @Serializer(forClass = UpdateSteps::class)
+    companion object : KSerializer<UpdateSteps> {
+
+        val initial = UpdateSteps()
+        val JSON = kotlinx.serialization.json.JSON(context = SerialContext().apply {
+            registerSerializer(AddTaskUpdateStep::class, AddTaskUpdateStep.serializer())
+            registerSerializer(ReopenTaskUpdateStep::class, ReopenTaskUpdateStep.serializer())
+            registerSerializer(CloseTaskUpdateStep::class, CloseTaskUpdateStep.serializer())
+        })
+
+        override val serialClassDesc = SerialClassDescImpl("com.cbruegg.agendafortodoist.shared.todoist.repo.caching.UpdateSteps")
+
+        override fun load(input: KInput): UpdateSteps {
+            val size = input.readIntValue()
+            val steps = (0 until size).map { input.readSerializableValue(PolymorphicSerializer) as UpdateStep }
+            return UpdateSteps(steps)
+        }
+
+        override fun save(output: KOutput, obj: UpdateSteps) {
+            output.writeIntValue(obj.steps.size)
+            obj.steps.forEach { output.writeSerializableValue(PolymorphicSerializer, it) }
+        }
+
+    }
+
     val hasSteps get() = steps.isNotEmpty()
 
     override suspend fun sendTo(todoist: TodoistApi, requestId: Int) {
@@ -57,8 +95,8 @@ class UpdateSteps(private val steps: List<UpdateStep> = emptyList()) : UpdateSte
     )
 }
 
-
-class CloseTaskUpdateStep(val task: Task) : UpdateStep() {
+@Serializable
+data class CloseTaskUpdateStep(val task: Task) : UpdateStep() {
     override suspend fun sendTo(todoist: TodoistApi, requestId: Int) {
         val resp = todoist.closeTask(task.id, requestId).awaitResponse()
         if (resp.code() !in 200..299) throw HttpException(resp)
@@ -69,7 +107,8 @@ class CloseTaskUpdateStep(val task: Task) : UpdateStep() {
     }
 }
 
-class ReopenTaskUpdateStep(val task: Task) : UpdateStep() {
+@Serializable
+data class ReopenTaskUpdateStep(val task: Task) : UpdateStep() {
     override suspend fun sendTo(todoist: TodoistApi, requestId: Int) {
         val resp = todoist.reopenTask(task.id, requestId).awaitResponse()
         if (resp.code() !in 200..299) throw HttpException(resp)
@@ -80,7 +119,8 @@ class ReopenTaskUpdateStep(val task: Task) : UpdateStep() {
     }
 }
 
-class AddTaskUpdateStep(val newTask: NewTask) : UpdateStep() {
+@Serializable
+data class AddTaskUpdateStep(val newTask: NewTask) : UpdateStep() {
     override suspend fun sendTo(todoist: TodoistApi, requestId: Int) {
         val resp = todoist.addTask(requestId, newTask.toNewTaskDto()).awaitResponse()
         if (resp.code() !in 200..299) throw HttpException(resp)
@@ -92,5 +132,4 @@ class AddTaskUpdateStep(val newTask: NewTask) : UpdateStep() {
         isCompleted = false,
         projectId = newTask.projectId
     )
-
 }

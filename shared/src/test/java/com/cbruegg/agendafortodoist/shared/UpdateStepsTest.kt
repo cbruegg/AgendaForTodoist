@@ -8,6 +8,7 @@ import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.AddTaskUpdateSte
 import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.CloseTaskUpdateStep
 import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.ReopenTaskUpdateStep
 import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.UpdateSteps
+import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.toUpdateSteps
 import org.junit.Assert
 import org.junit.Test
 
@@ -22,12 +23,24 @@ private object Scenario {
 
 class UpdateStepsTest {
     @Test
+    fun serializationTest() {
+        val closeTask0Step = CloseTaskUpdateStep(tasks[0])
+        val closeTask2Step = CloseTaskUpdateStep(tasks[2])
+        val reopenTask0Step = ReopenTaskUpdateStep(tasks[0])
+        val addStep = AddTaskUpdateStep(taskToAdd)
+        val steps = listOf(closeTask0Step, closeTask2Step, reopenTask0Step, addStep).toUpdateSteps()
+
+        val json = UpdateSteps.JSON.stringify(steps)
+        Assert.assertEquals(steps, UpdateSteps.JSON.parse<UpdateSteps>(json))
+    }
+
+    @Test
     fun updateStepsTest() {
         val closeTask0Step = CloseTaskUpdateStep(tasks[0])
         val closeTask2Step = CloseTaskUpdateStep(tasks[2])
         val reopenTask0Step = ReopenTaskUpdateStep(tasks[0])
         val addStep = AddTaskUpdateStep(taskToAdd)
-        val steps = UpdateSteps(listOf(closeTask0Step, closeTask2Step, reopenTask0Step, addStep))
+        val steps = listOf(closeTask0Step, closeTask2Step, reopenTask0Step, addStep).toUpdateSteps()
 
         val result = steps.applyTo(tasks)
 
@@ -44,14 +57,13 @@ class UpdateStepsTest {
 
     @Test
     fun updateStepsAddRemoveTest() {
-        val steps = UpdateSteps(
-            listOf(
-                AddTaskUpdateStep(taskToAdd),
-                CloseTaskUpdateStep(
-                    Task(taskToAdd.virtualId, taskToAdd.content, isCompleted = false, projectId = taskToAdd.projectId)
-                )
+        val steps = listOf(
+            AddTaskUpdateStep(taskToAdd),
+            CloseTaskUpdateStep(
+                Task(taskToAdd.virtualId, taskToAdd.content, isCompleted = false, projectId = taskToAdd.projectId)
             )
-        )
+        ).toUpdateSteps()
+
         Assert.assertEquals(tasks, steps.applyTo(tasks))
     }
 

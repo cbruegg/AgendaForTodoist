@@ -27,7 +27,7 @@ class TasksAdapter(
         setHasStableIds(true)
     }
 
-    override fun getItemId(position: Int) = data[position].id
+    override fun getItemId(position: Int) = data[position].task.id
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
             TaskViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.row_task, parent, false))
@@ -36,7 +36,7 @@ class TasksAdapter(
         val task = data[position]
 
         @SuppressLint("SetTextI18n")
-        holder.nameView.text = task.content
+        holder.nameView.text = task.task.content
         holder.itemView.tag = holder
         holder.taskViewModel = task
         holder.strikethroughObserver = task.strikethrough.observe(this) {

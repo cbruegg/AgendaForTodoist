@@ -2,6 +2,7 @@ package com.cbruegg.agendafortodoist
 
 import com.cbruegg.agendafortodoist.shared.auth.AuthServiceApi
 import com.cbruegg.agendafortodoist.shared.todoist.api.TodoistApi
+import com.cbruegg.agendafortodoist.shared.util.UniqueRequestIdGenerator
 import dagger.Module
 import dagger.Provides
 
@@ -15,4 +16,7 @@ class NetModule(
 
     @Provides
     fun provideAuthService() = authService
+
+    @Provides
+    fun provideUniqueRequestIdGenerator() = UniqueRequestIdGenerator
 }

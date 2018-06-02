@@ -5,8 +5,11 @@ import com.cbruegg.agendafortodoist.shared.todoist.api.NewTaskDto
 import com.cbruegg.agendafortodoist.shared.todoist.api.ProjectDto
 import com.cbruegg.agendafortodoist.shared.todoist.api.TaskDto
 import kotlinx.android.parcel.Parcelize
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Parcelize
+@Serializable
 data class Project(
     val id: Long,
     val name: String,
@@ -20,6 +23,7 @@ data class Project(
 }
 
 @Parcelize
+@Serializable
 data class Task(
     val id: Long,
     val content: String,
@@ -36,10 +40,13 @@ data class Task(
     /**
      * True iff this task has not been submitted to the API
      */
-    inline val isVirtual get() = id < 0
+    @Transient
+    inline val isVirtual
+        get() = id < 0
 }
 
 @Parcelize
+@Serializable
 data class NewTask(
     val content: String,
     val projectId: Long,
