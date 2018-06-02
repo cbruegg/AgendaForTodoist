@@ -7,10 +7,10 @@ import kotlinx.serialization.KInput
 import kotlinx.serialization.KOutput
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.PolymorphicSerializer
-import kotlinx.serialization.SerialContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.internal.SerialClassDescImpl
+import kotlinx.serialization.list
 import retrofit2.HttpException
 import ru.gildor.coroutines.retrofit.awaitResponse
 
@@ -23,29 +23,21 @@ sealed class UpdateStep {
 fun List<UpdateStep>.toUpdateSteps() = fold(UpdateSteps.initial) { acc, updateStep -> acc + updateStep }
 
 @Serializable
-data class UpdateSteps private constructor(private val steps: List<UpdateStep> = emptyList()) : UpdateStep() {
+class UpdateSteps private constructor(private val steps: List<UpdateStep> = emptyList()) : UpdateStep() {
 
     @Serializer(forClass = UpdateSteps::class)
     companion object : KSerializer<UpdateSteps> {
 
         val initial = UpdateSteps()
-        val JSON = kotlinx.serialization.json.JSON(context = SerialContext().apply {
-            registerSerializer(AddTaskUpdateStep::class, AddTaskUpdateStep.serializer())
-            registerSerializer(ReopenTaskUpdateStep::class, ReopenTaskUpdateStep.serializer())
-            registerSerializer(CloseTaskUpdateStep::class, CloseTaskUpdateStep.serializer())
-        })
 
         override val serialClassDesc = SerialClassDescImpl("com.cbruegg.agendafortodoist.shared.todoist.repo.caching.UpdateSteps")
 
         override fun load(input: KInput): UpdateSteps {
-            val size = input.readIntValue()
-            val steps = (0 until size).map { input.readSerializableValue(PolymorphicSerializer) as UpdateStep }
-            return UpdateSteps(steps)
+            return UpdateSteps(PolymorphicSerializer.list.load(input).map { it as UpdateStep })
         }
 
         override fun save(output: KOutput, obj: UpdateSteps) {
-            output.writeIntValue(obj.steps.size)
-            obj.steps.forEach { output.writeSerializableValue(PolymorphicSerializer, it) }
+            PolymorphicSerializer.list.save(output, obj.steps)
         }
 
     }
@@ -93,6 +85,26 @@ data class UpdateSteps private constructor(private val steps: List<UpdateStep> =
             }
         }
     )
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as UpdateSteps
+
+        if (steps != other.steps) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return steps.hashCode()
+    }
+
+    override fun toString(): String {
+        return "UpdateSteps(steps=$steps)"
+    }
+
 }
 
 @Serializable

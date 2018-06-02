@@ -9,6 +9,7 @@ import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.CloseTaskUpdateS
 import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.ReopenTaskUpdateStep
 import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.UpdateSteps
 import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.toUpdateSteps
+import kotlinx.serialization.json.JSON
 import org.junit.Assert
 import org.junit.Test
 
@@ -30,8 +31,8 @@ class UpdateStepsTest {
         val addStep = AddTaskUpdateStep(taskToAdd)
         val steps = listOf(closeTask0Step, closeTask2Step, reopenTask0Step, addStep).toUpdateSteps()
 
-        val json = UpdateSteps.JSON.stringify(steps)
-        Assert.assertEquals(steps, UpdateSteps.JSON.parse<UpdateSteps>(json))
+        val json = JSON.stringify(steps)
+        Assert.assertEquals(steps, JSON.parse<UpdateSteps>(json))
     }
 
     @Test
