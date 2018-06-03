@@ -3,6 +3,7 @@ package com.cbruegg.agendafortodoist.shared.todoist.repo.caching
 import com.cbruegg.agendafortodoist.shared.todoist.api.TodoistApi
 import com.cbruegg.agendafortodoist.shared.todoist.repo.NewTask
 import com.cbruegg.agendafortodoist.shared.todoist.repo.Task
+import com.cbruegg.agendafortodoist.shared.util.UniqueRequestIdGenerator
 import kotlinx.serialization.KInput
 import kotlinx.serialization.KOutput
 import kotlinx.serialization.KSerializer
@@ -16,8 +17,9 @@ import ru.gildor.coroutines.retrofit.awaitResponse
 
 @Serializable
 sealed class UpdateStep {
-    abstract suspend fun sendTo(todoist: TodoistApi, requestId: Int)
+    abstract suspend fun sendTo(todoist: TodoistApi)
     abstract fun applyTo(tasks: List<Task>): List<Task>
+    abstract fun getRequestId(): Int? // This has to be a function, otherwise the compiler produces incorrect bytecode
 }
 
 fun List<UpdateStep>.toUpdateSteps() = fold(UpdateSteps.initial) { acc, updateStep -> acc + updateStep }
@@ -42,10 +44,10 @@ class UpdateSteps private constructor(private val steps: List<UpdateStep> = empt
 
     }
 
-    val hasSteps get() = steps.isNotEmpty()
+    override fun getRequestId(): Int? = null
 
-    override suspend fun sendTo(todoist: TodoistApi, requestId: Int) {
-        steps.forEachIndexed { index, updateStep -> updateStep.sendTo(todoist, requestId + index) }
+    override suspend fun sendTo(todoist: TodoistApi) {
+        steps.forEach { it -> it.sendTo(todoist) }
     }
 
     override fun applyTo(tasks: List<Task>) = steps.fold(tasks) { acc, updateStep -> updateStep.applyTo(acc) }
@@ -67,7 +69,8 @@ class UpdateSteps private constructor(private val steps: List<UpdateStep> = empt
                 if (updateStep.task.isVirtual) {
                     if (steps.none { it is AddTaskUpdateStep && it.newTask.virtualId == updateStep.task.id }) {
                         // We have removed the AddTaskUpdateStep before, so we need to recreate it
-                        steps + AddTaskUpdateStep(NewTask(updateStep.task.content, updateStep.task.projectId, updateStep.task.id))
+                        val requestId = steps.asSequence().mapNotNull { it.getRequestId() }.max() ?: UniqueRequestIdGenerator.nextRequestId()
+                        steps + AddTaskUpdateStep(NewTask(updateStep.task.content, updateStep.task.projectId, updateStep.task.id), requestId)
                     } else {
                         steps
                     }
@@ -108,8 +111,8 @@ class UpdateSteps private constructor(private val steps: List<UpdateStep> = empt
 }
 
 @Serializable
-data class CloseTaskUpdateStep(val task: Task) : UpdateStep() {
-    override suspend fun sendTo(todoist: TodoistApi, requestId: Int) {
+data class CloseTaskUpdateStep(val task: Task, val requestId: Int) : UpdateStep() {
+    override suspend fun sendTo(todoist: TodoistApi) {
         val resp = todoist.closeTask(task.id, requestId).awaitResponse()
         if (resp.code() !in 200..299) throw HttpException(resp)
     }
@@ -117,11 +120,13 @@ data class CloseTaskUpdateStep(val task: Task) : UpdateStep() {
     override fun applyTo(tasks: List<Task>) = tasks.map {
         if (it.id == task.id) it.copy(isCompleted = true) else it
     }
+
+    override fun getRequestId() = requestId
 }
 
 @Serializable
-data class ReopenTaskUpdateStep(val task: Task) : UpdateStep() {
-    override suspend fun sendTo(todoist: TodoistApi, requestId: Int) {
+data class ReopenTaskUpdateStep(val task: Task, val requestId: Int) : UpdateStep() {
+    override suspend fun sendTo(todoist: TodoistApi) {
         val resp = todoist.reopenTask(task.id, requestId).awaitResponse()
         if (resp.code() !in 200..299) throw HttpException(resp)
     }
@@ -129,11 +134,13 @@ data class ReopenTaskUpdateStep(val task: Task) : UpdateStep() {
     override fun applyTo(tasks: List<Task>) = tasks.map {
         if (it.id == task.id) it.copy(isCompleted = false) else it
     }
+
+    override fun getRequestId() = requestId
 }
 
 @Serializable
-data class AddTaskUpdateStep(val newTask: NewTask) : UpdateStep() {
-    override suspend fun sendTo(todoist: TodoistApi, requestId: Int) {
+data class AddTaskUpdateStep(val newTask: NewTask, val requestId: Int) : UpdateStep() {
+    override suspend fun sendTo(todoist: TodoistApi) {
         val resp = todoist.addTask(requestId, newTask.toNewTaskDto()).awaitResponse()
         if (resp.code() !in 200..299) throw HttpException(resp)
     }
@@ -144,4 +151,6 @@ data class AddTaskUpdateStep(val newTask: NewTask) : UpdateStep() {
         isCompleted = false,
         projectId = newTask.projectId
     )
+
+    override fun getRequestId() = requestId
 }
