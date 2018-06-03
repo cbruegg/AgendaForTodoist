@@ -2,7 +2,7 @@ package com.cbruegg.agendafortodoist.shared.todoist.api
 
 import com.squareup.moshi.Json
 
-data class ProjectDto(
+internal data class ProjectDto(
         @Json(name = "id") val id: Long,
         @Json(name = "name") val name: String,
         @Json(name = "order") val order: Int,
@@ -10,7 +10,7 @@ data class ProjectDto(
         @Json(name = "comment_count") val commentCount: Int
 )
 
-data class TaskDto(
+internal data class TaskDto(
         @Json(name = "id") val id: Long,
         @Json(name = "project_id") val projectId: Long,
         @Json(name = "content") val content: String,
@@ -23,7 +23,7 @@ data class TaskDto(
         @Json(name = "comment_count") val commentCount: Int
 )
 
-data class NewTaskDto(
+internal data class NewTaskDto(
         @Json(name = "content") val content: String,
         @Json(name = "project_id") val projectId: Long
 )

@@ -52,9 +52,10 @@ class TasksViewModel(
             _showList.data = false
             try {
                 val tasks = todoist.tasks(projectId).await()
-                _taskViewModels.data = tasks.map { TaskViewModel(it, requestIdGenerator, todoist, onAuthError) }
+                _taskViewModels.data = tasks.map { TaskViewModel(it, requestIdGenerator, todoist) }
                 _bigMessageId.data = if (tasks.isEmpty()) R.string.no_tasks else null
             } catch (e: TodoistRepoException) {
+                e.printStackTrace()
                 _taskViewModels.data = emptyList()
                 when (e) {
                     is TodoistNetworkException -> {
@@ -78,8 +79,7 @@ class TasksViewModel(
 class TaskViewModel(
     val task: Task,
     private val requestIdGenerator: UniqueRequestIdGenerator,
-    private val todoist: TodoistRepo,
-    private val onAuthError: () -> Unit
+    private val todoist: TodoistRepo
 ) : ViewModel() {
     private val _strikethrough = MutableLiveData(task.isCompleted)
     val strikethrough: LiveData<Boolean> = _strikethrough
@@ -90,8 +90,7 @@ class TaskViewModel(
     var toast: (Int) -> Unit = {}
 
     @Volatile
-    var isCompleted = task.isCompleted
-        private set
+    private var isCompleted = task.isCompleted
 
     private val lock = Mutex()
 
@@ -128,48 +127,16 @@ class TaskViewModel(
     private fun markCompleted() = launch(UI) {
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
-        try {
-            todoist.closeTask(task, requestId).await()
-            _strikethrough.data = true
-        } catch (e: TodoistRepoException) {
-            e.printStackTrace()
-            when (e) {
-                is TodoistNetworkException -> {
-                    toast(R.string.network_error)
-                }
-                is TodoistServiceException.General -> {
-                    toast(R.string.http_error)
-                }
-                is TodoistServiceException.Auth -> {
-                    onAuthError()
-                    toast(R.string.http_error)
-                }
-            }
-        }
+        todoist.closeTask(task, requestId).await()
+        _strikethrough.data = true
         _isLoading.data = false
     }
 
     private fun markUncompleted() = launch(UI) {
         val requestId = requestIdGenerator.nextRequestId()
         _isLoading.data = true
-        try {
-            todoist.reopenTask(task, requestId).await()
-            _strikethrough.data = false
-        } catch (e: TodoistRepoException) {
-            e.printStackTrace()
-            when (e) {
-                is TodoistNetworkException -> {
-                    toast(R.string.network_error)
-                }
-                is TodoistServiceException.General -> {
-                    toast(R.string.http_error)
-                }
-                is TodoistServiceException.Auth -> {
-                    onAuthError()
-                    toast(R.string.http_error)
-                }
-            }
-        }
+        todoist.reopenTask(task, requestId).await()
+        _strikethrough.data = false
         _isLoading.data = false
     }
 }

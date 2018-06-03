@@ -16,7 +16,7 @@ interface TodoistRepo {
     fun addTask(requestId: Int, task: NewTask): Deferred<Unit>
 }
 
-sealed class TodoistRepoException(open val e: Exception) : Exception(e)
+sealed class TodoistRepoException(open val e: Exception) : RuntimeException(e)
 
 class TodoistNetworkException(override val e: IOException) : TodoistRepoException(e)
 

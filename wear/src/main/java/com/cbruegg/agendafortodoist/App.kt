@@ -4,20 +4,25 @@ import android.app.Application
 import android.content.Context
 import android.support.v4.app.Fragment
 import com.cbruegg.agendafortodoist.shared.auth.authService
-import com.cbruegg.agendafortodoist.shared.todoist.api.todoist
+import com.cbruegg.agendafortodoist.shared.initSharedLibrary
 
 class App : Application() {
 
     val applicationComponent: ApplicationComponent by lazy {
         DaggerApplicationComponent.builder()
-                .applicationModule(ApplicationModule(this))
-                .build()
+            .applicationModule(ApplicationModule(this))
+            .build()
     }
 
-    val netComponent: NetComponent by lazy {
-        DaggerNetComponent.builder()
-                .netModule(NetModule(todoist(applicationComponent.accessTokenGetter()), authService))
-                .build()
+    lateinit var netComponent: NetComponent
+
+    override fun onCreate() {
+        super.onCreate()
+        val todoistRepo = initSharedLibrary(this, applicationComponent.accessTokenGetter()).todoistRepo
+
+        netComponent = DaggerNetComponent.builder()
+            .netModule(NetModule(todoistRepo, authService))
+            .build()
     }
 
 }

@@ -1,7 +1,7 @@
 package com.cbruegg.agendafortodoist
 
 import com.cbruegg.agendafortodoist.shared.auth.AuthServiceApi
-import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.CachingTodoistRepo
+import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepo
 import dagger.Component
 import javax.inject.Singleton
 
@@ -9,5 +9,5 @@ import javax.inject.Singleton
 @Singleton
 interface NetComponent {
     fun authService(): AuthServiceApi
-    fun todoistRepo(): CachingTodoistRepo
+    fun todoistRepo(): TodoistRepo
 }

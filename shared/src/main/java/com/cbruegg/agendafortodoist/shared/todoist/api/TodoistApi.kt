@@ -20,7 +20,7 @@ interface AccessTokenGetter {
     val accessToken: String
 }
 
-fun todoist(accessTokenGetter: AccessTokenGetter): TodoistApi {
+internal fun todoist(accessTokenGetter: AccessTokenGetter): TodoistApi {
     val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
         .build()
@@ -51,7 +51,7 @@ fun todoist(accessTokenGetter: AccessTokenGetter): TodoistApi {
 
 private const val REQ_ID_HEADER = "X-Request-Id"
 
-interface TodoistApi {
+internal interface TodoistApi {
 
     @GET("projects")
     fun projects(): Call<List<ProjectDto>>
@@ -67,6 +67,6 @@ interface TodoistApi {
 
     @POST("tasks")
     @Headers("Content-Type: application/json")
-    fun addTask(@Header(REQ_ID_HEADER) requestId: Int, @Body taskDto: NewTaskDto): Call<Void>
+    fun addTask(@Header(REQ_ID_HEADER) requestId: Int, @Body taskDto: NewTaskDto): Call<TaskDto>
 }
 

@@ -25,10 +25,10 @@ private object Scenario {
 class UpdateStepsTest {
     @Test
     fun serializationTest() {
-        val closeTask0Step = CloseTaskUpdateStep(tasks[0])
-        val closeTask2Step = CloseTaskUpdateStep(tasks[2])
-        val reopenTask0Step = ReopenTaskUpdateStep(tasks[0])
-        val addStep = AddTaskUpdateStep(taskToAdd)
+        val closeTask0Step = CloseTaskUpdateStep(tasks[0], requestId = 0)
+        val closeTask2Step = CloseTaskUpdateStep(tasks[2], requestId = 1)
+        val reopenTask0Step = ReopenTaskUpdateStep(tasks[0], requestId = 2)
+        val addStep = AddTaskUpdateStep(taskToAdd, requestId = 3)
         val steps = listOf(closeTask0Step, closeTask2Step, reopenTask0Step, addStep).toUpdateSteps()
 
         val json = JSON.stringify(steps)
@@ -37,10 +37,10 @@ class UpdateStepsTest {
 
     @Test
     fun updateStepsTest() {
-        val closeTask0Step = CloseTaskUpdateStep(tasks[0])
-        val closeTask2Step = CloseTaskUpdateStep(tasks[2])
-        val reopenTask0Step = ReopenTaskUpdateStep(tasks[0])
-        val addStep = AddTaskUpdateStep(taskToAdd)
+        val closeTask0Step = CloseTaskUpdateStep(tasks[0], requestId = 0)
+        val closeTask2Step = CloseTaskUpdateStep(tasks[2], requestId = 1)
+        val reopenTask0Step = ReopenTaskUpdateStep(tasks[0], requestId = 2)
+        val addStep = AddTaskUpdateStep(taskToAdd, requestId = 3)
         val steps = listOf(closeTask0Step, closeTask2Step, reopenTask0Step, addStep).toUpdateSteps()
 
         val result = steps.applyTo(tasks)
@@ -59,9 +59,10 @@ class UpdateStepsTest {
     @Test
     fun updateStepsAddRemoveTest() {
         val steps = listOf(
-            AddTaskUpdateStep(taskToAdd),
+            AddTaskUpdateStep(taskToAdd, requestId = 0),
             CloseTaskUpdateStep(
-                Task(taskToAdd.virtualId, taskToAdd.content, isCompleted = false, projectId = taskToAdd.projectId)
+                Task(taskToAdd.virtualId, taskToAdd.content, isCompleted = false, projectId = taskToAdd.projectId),
+                requestId = 1
             )
         ).toUpdateSteps()
 
@@ -70,21 +71,21 @@ class UpdateStepsTest {
 
     @Test
     fun testCloseTaskUpdateStep() {
-        val closeTask0Step = CloseTaskUpdateStep(tasks[0])
+        val closeTask0Step = CloseTaskUpdateStep(tasks[0], requestId = 0)
         val expected = tasks.map { if (it.id == 0L) it.copy(isCompleted = true) else it }
         Assert.assertEquals(expected, closeTask0Step.applyTo(tasks))
     }
 
     @Test
     fun testReopenTaskUpdateStep() {
-        val reopenTask1Step = ReopenTaskUpdateStep(tasks[1])
+        val reopenTask1Step = ReopenTaskUpdateStep(tasks[1], requestId = 0)
         val expected = tasks.map { if (it.id == 1L) it.copy(isCompleted = false) else it }
         Assert.assertEquals(expected, reopenTask1Step.applyTo(tasks))
     }
 
     @Test
     fun testAddStep() {
-        val addStep = AddTaskUpdateStep(taskToAdd)
+        val addStep = AddTaskUpdateStep(taskToAdd, requestId = 0)
         val actual = addStep.applyTo(tasks)
         Assert.assertEquals(taskToAdd.content, actual.getOrNull(3)?.content)
         Assert.assertEquals(taskToAdd.projectId, actual.getOrNull(3)?.projectId)

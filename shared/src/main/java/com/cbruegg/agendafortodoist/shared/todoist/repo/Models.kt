@@ -15,7 +15,7 @@ data class Project(
     val name: String,
     val indent: Int
 ) : Parcelable {
-    constructor(dto: ProjectDto) : this(
+    internal constructor(dto: ProjectDto) : this(
         id = dto.id,
         name = dto.name,
         indent = dto.indent
@@ -30,7 +30,7 @@ data class Task(
     val isCompleted: Boolean,
     val projectId: Long
 ) : Parcelable {
-    constructor(dto: TaskDto) : this(
+    internal constructor(dto: TaskDto) : this(
         id = dto.id,
         content = dto.content,
         isCompleted = dto.isCompleted,
@@ -60,7 +60,7 @@ data class NewTask(
         require(virtualId < 0)
     }
 
-    fun toNewTaskDto() = NewTaskDto(
+    internal fun toNewTaskDto() = NewTaskDto(
         content = content,
         projectId = projectId
     )

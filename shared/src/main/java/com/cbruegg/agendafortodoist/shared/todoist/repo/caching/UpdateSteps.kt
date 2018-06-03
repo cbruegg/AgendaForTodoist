@@ -15,17 +15,19 @@ import kotlinx.serialization.list
 import retrofit2.HttpException
 import ru.gildor.coroutines.retrofit.awaitResponse
 
+internal data class SendResult(val virtualToRealIds: Map<Long, Long> = emptyMap())
+
 @Serializable
-sealed class UpdateStep {
-    abstract suspend fun sendTo(todoist: TodoistApi)
+internal sealed class UpdateStep {
+    abstract suspend fun sendTo(todoist: TodoistApi): SendResult
     abstract fun applyTo(tasks: List<Task>): List<Task>
     abstract fun getRequestId(): Int? // This has to be a function, otherwise the compiler produces incorrect bytecode
 }
 
-fun List<UpdateStep>.toUpdateSteps() = fold(UpdateSteps.initial) { acc, updateStep -> acc + updateStep }
+internal fun List<UpdateStep>.toUpdateSteps() = fold(UpdateSteps.initial) { acc, updateStep -> acc + updateStep }
 
 @Serializable
-class UpdateSteps private constructor(private val steps: List<UpdateStep> = emptyList()) : UpdateStep() {
+internal class UpdateSteps private constructor(private val steps: List<UpdateStep> = emptyList()) : UpdateStep() {
 
     @Serializer(forClass = UpdateSteps::class)
     companion object : KSerializer<UpdateSteps> {
@@ -46,8 +48,11 @@ class UpdateSteps private constructor(private val steps: List<UpdateStep> = empt
 
     override fun getRequestId(): Int? = null
 
-    override suspend fun sendTo(todoist: TodoistApi) {
-        steps.forEach { it -> it.sendTo(todoist) }
+    override suspend fun sendTo(todoist: TodoistApi): SendResult {
+        val virtualToRealIds = steps
+            .map { it -> it.sendTo(todoist) }
+            .fold(emptyMap<Long, Long>()) { acc, sendResult -> acc + sendResult.virtualToRealIds }
+        return SendResult(virtualToRealIds)
     }
 
     override fun applyTo(tasks: List<Task>) = steps.fold(tasks) { acc, updateStep -> updateStep.applyTo(acc) }
@@ -77,7 +82,7 @@ class UpdateSteps private constructor(private val steps: List<UpdateStep> = empt
                 } else {
                     // Since we're reopening this task anyway, we don't need to submit any
                     // steps closing it before
-                    steps.filter { it !is CloseTaskUpdateStep || it.task.id != updateStep.task.id }
+                    steps.filter { it !is CloseTaskUpdateStep || it.task.id != updateStep.task.id } + updateStep
                 }
             }
             is AddTaskUpdateStep -> {
@@ -111,10 +116,11 @@ class UpdateSteps private constructor(private val steps: List<UpdateStep> = empt
 }
 
 @Serializable
-data class CloseTaskUpdateStep(val task: Task, val requestId: Int) : UpdateStep() {
-    override suspend fun sendTo(todoist: TodoistApi) {
+internal data class CloseTaskUpdateStep(val task: Task, val requestId: Int) : UpdateStep() {
+    override suspend fun sendTo(todoist: TodoistApi): SendResult {
         val resp = todoist.closeTask(task.id, requestId).awaitResponse()
         if (resp.code() !in 200..299) throw HttpException(resp)
+        return SendResult()
     }
 
     override fun applyTo(tasks: List<Task>) = tasks.map {
@@ -125,10 +131,11 @@ data class CloseTaskUpdateStep(val task: Task, val requestId: Int) : UpdateStep(
 }
 
 @Serializable
-data class ReopenTaskUpdateStep(val task: Task, val requestId: Int) : UpdateStep() {
-    override suspend fun sendTo(todoist: TodoistApi) {
+internal data class ReopenTaskUpdateStep(val task: Task, val requestId: Int) : UpdateStep() {
+    override suspend fun sendTo(todoist: TodoistApi): SendResult {
         val resp = todoist.reopenTask(task.id, requestId).awaitResponse()
         if (resp.code() !in 200..299) throw HttpException(resp)
+        return SendResult()
     }
 
     override fun applyTo(tasks: List<Task>) = tasks.map {
@@ -139,10 +146,11 @@ data class ReopenTaskUpdateStep(val task: Task, val requestId: Int) : UpdateStep
 }
 
 @Serializable
-data class AddTaskUpdateStep(val newTask: NewTask, val requestId: Int) : UpdateStep() {
-    override suspend fun sendTo(todoist: TodoistApi) {
+internal data class AddTaskUpdateStep(val newTask: NewTask, val requestId: Int) : UpdateStep() {
+    override suspend fun sendTo(todoist: TodoistApi): SendResult {
         val resp = todoist.addTask(requestId, newTask.toNewTaskDto()).awaitResponse()
         if (resp.code() !in 200..299) throw HttpException(resp)
+        return SendResult(mapOf(newTask.virtualId to resp.body()!!.id))
     }
 
     override fun applyTo(tasks: List<Task>) = tasks + Task(
