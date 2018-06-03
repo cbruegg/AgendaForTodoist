@@ -94,7 +94,8 @@ class TaskViewModel(
     var toast: (Int) -> Unit = {}
 
     @Volatile
-    private var isCompleted = task.isCompleted
+    var isCompleted = task.isCompleted
+        private set
 
     private val lock = Mutex()
 

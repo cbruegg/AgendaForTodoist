@@ -73,7 +73,7 @@ class TasksActivity : WearableActivity() {
         ))
 
         val adapter = TasksAdapter(emptyList(), this) {
-            startActivityForResult(newTaskActivityIntent(this, it.task), REQUEST_CODE_TASK)
+            startActivityForResult(newTaskActivityIntent(this, it.task.copy(isCompleted = it.isCompleted)), REQUEST_CODE_TASK)
         }
         val tasksList = findViewById<WearableRecyclerView>(R.id.tasks)
         val progressBar = findViewById<ProgressBar>(R.id.tasks_progress)
