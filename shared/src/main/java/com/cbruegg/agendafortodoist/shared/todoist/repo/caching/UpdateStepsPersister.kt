@@ -6,6 +6,7 @@ import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistNetworkException
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepoException
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistServiceException
 import com.cbruegg.agendafortodoist.shared.util.retry
+import kotlinx.serialization.SerialContext
 import kotlinx.serialization.json.JSON
 import retrofit2.HttpException
 import java.io.IOException

@@ -14,8 +14,13 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            shrinkResources true
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            shrinkResources true
+            minifyEnabled true
         }
     }
     packagingOptions {
@@ -38,23 +43,28 @@ repositories {
 }
 
 dependencies {
+    def supportLibVersion = "27.1.1"
+
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'ru.gildor.coroutines:kotlin-coroutines-retrofit:0.8.2'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.google.android.support:wearable:2.1.0'
-    implementation 'com.google.android.gms:play-services-wearable:11.6.0'
-    implementation 'com.android.support:appcompat-v7:27.0.1'
-    implementation 'com.android.support:percent:27.0.1'
-    implementation 'com.android.support:support-v4:27.0.1'
-    implementation 'com.android.support:recyclerview-v7:27.0.1'
-    implementation 'com.android.support:wear:27.0.1'
-    compileOnly 'com.google.android.wearable:wearable:2.1.0'
+    implementation 'com.google.android.support:wearable:2.3.0'
+    compileOnly 'com.google.android.wearable:wearable:2.3.0'
+
+    implementation "com.android.support:appcompat-v7:$supportLibVersion"
+    implementation "com.android.support:recyclerview-v7:$supportLibVersion"
+    implementation "com.android.support:wear:$supportLibVersion"
+
+    // Transitive dependencies from com.google.android.support:wearable
+    implementation "com.android.support:percent:$supportLibVersion"
+    implementation "com.android.support:animated-vector-drawable:$supportLibVersion"
+    implementation "com.android.support:support-media-compat:$supportLibVersion"
+    implementation "com.android.support:support-v4:$supportLibVersion"
+
     implementation project(':shared')
 
-    implementation 'com.google.dagger:dagger:2.12'
-    kapt 'com.google.dagger:dagger-compiler:2.12'
+    implementation 'com.google.dagger:dagger:2.14.1'
+    kapt 'com.google.dagger:dagger-compiler:2.14.1'
 
-    implementation "android.arch.lifecycle:runtime:1.0.3"
-    implementation "android.arch.lifecycle:extensions:1.0.0"
-    kapt "android.arch.lifecycle:compiler:1.0.0"
+    implementation "android.arch.lifecycle:runtime:1.1.1"
+    implementation "android.arch.lifecycle:extensions:1.1.1"
+    kapt "android.arch.lifecycle:compiler:1.1.1"
 }

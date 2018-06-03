@@ -10,6 +10,9 @@ import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.SharedPreference
 import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.SharedPreferencesUpdateStepsPersister
 import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.SharedPreferencesVirtualIdToReadIdPersister
 import com.evernote.android.job.JobManager
+import com.squareup.moshi.Moshi
+
+internal val moshi = Moshi.Builder().build()
 
 data class SharedLibraryInstances(val todoistRepo: TodoistRepo)
 

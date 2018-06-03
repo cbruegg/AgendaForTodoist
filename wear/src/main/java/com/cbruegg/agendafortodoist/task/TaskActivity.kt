@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Paint
 import android.os.Bundle
-import android.support.wear.ambient.AmbientMode
+import android.support.wear.ambient.AmbientModeSupport
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
@@ -31,7 +31,7 @@ fun newTaskActivityIntent(context: Context, task: Task) =
 class TaskActivity : WearableActivity() {
 
     init {
-        ambientCallbackDelegate = object : AmbientMode.AmbientCallback() {
+        ambientCallbackDelegate = object : AmbientModeSupport.AmbientCallback() {
             override fun onExitAmbient() {
                 super.onExitAmbient()
                 rootView.setBackgroundResource(R.color.activity_background)

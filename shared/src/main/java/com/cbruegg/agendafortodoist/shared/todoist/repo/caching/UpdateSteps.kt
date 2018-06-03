@@ -166,7 +166,7 @@ internal data class ReopenTaskUpdateStep(val task: Task, val requestId: Int) : U
 internal data class AddTaskUpdateStep(val newTask: NewTask, val requestId: Int) : UpdateStep() {
     override suspend fun sendTo(todoist: TodoistApi): SendResult {
         val resp = todoist.addTask(requestId, newTask.toNewTaskDto()).awaitResponse()
-        return resp.handle { SendResult(mapOf(newTask.virtualId to it.id)) }
+        return resp.handle { SendResult(mapOf(newTask.virtualId to it!!.id)) }
     }
 
     override suspend fun sendTo(cache: Cache) {
@@ -180,7 +180,7 @@ internal data class AddTaskUpdateStep(val newTask: NewTask, val requestId: Int) 
     override fun getRequestId() = requestId
 }
 
-private inline fun <T> Response<T>.handle(resultHandler: (T) -> SendResult): SendResult =
+private inline fun <T : Any> Response<T>.handle(resultHandler: (T?) -> SendResult): SendResult =
     if (code() !in 200..299) {
         Log.e("HttpResponse", "Received HTTP error with code ${code()}: ${errorBody()?.string()}")
         if (code() in 400..499) {
@@ -189,5 +189,5 @@ private inline fun <T> Response<T>.handle(resultHandler: (T) -> SendResult): Sen
             throw HttpException(this)
         }
     } else {
-        resultHandler(body()!!)
+        resultHandler(body())
     }

@@ -1,7 +1,6 @@
 package com.cbruegg.agendafortodoist.shared.auth
 
-import com.squareup.moshi.KotlinJsonAdapterFactory
-import com.squareup.moshi.Moshi
+import com.cbruegg.agendafortodoist.shared.moshi
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Retrofit
@@ -12,14 +11,10 @@ import retrofit2.http.Query
 private const val API_BASE = "https://agendafortodoist-auth.cbruegg.com/"
 
 val authService: AuthServiceApi by lazy {
-    val moshi = Moshi.Builder()
-            .add(KotlinJsonAdapterFactory())
-            .build()
-
     val retrofit = Retrofit.Builder()
-            .baseUrl(API_BASE)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .build()
+        .baseUrl(API_BASE)
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .build()
 
     retrofit.create(AuthServiceApi::class.java)
 }

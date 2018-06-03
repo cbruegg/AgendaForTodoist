@@ -1,6 +1,6 @@
 package com.cbruegg.agendafortodoist.shared.todoist.api
 
-import com.squareup.moshi.KotlinJsonAdapterFactory
+import com.cbruegg.agendafortodoist.shared.moshi
 import com.squareup.moshi.Moshi
 import okhttp3.OkHttpClient
 import retrofit2.Call
@@ -21,10 +21,6 @@ interface AccessTokenGetter {
 }
 
 internal fun todoist(accessTokenGetter: AccessTokenGetter): TodoistApi {
-    val moshi = Moshi.Builder()
-        .add(KotlinJsonAdapterFactory())
-        .build()
-
     val okHttp = OkHttpClient.Builder()
         .addInterceptor { chain ->
             val curUrl = chain.request().url()

@@ -3,7 +3,7 @@ package com.cbruegg.agendafortodoist.projects
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
-import android.support.wear.ambient.AmbientMode
+import android.support.wear.ambient.AmbientModeSupport
 import android.support.wear.widget.WearableLinearLayoutManager
 import android.support.wear.widget.WearableRecyclerView
 import android.view.View
@@ -23,7 +23,7 @@ import com.cbruegg.agendafortodoist.util.viewModel
 class ProjectsActivity : WearableActivity() {
 
     init {
-        ambientCallbackDelegate = object : AmbientMode.AmbientCallback() {
+        ambientCallbackDelegate = object : AmbientModeSupport.AmbientCallback() {
             override fun onExitAmbient() {
                 super.onExitAmbient()
                 rootView.setBackgroundResource(R.color.activity_background)
@@ -45,10 +45,10 @@ class ProjectsActivity : WearableActivity() {
         setAmbientEnabled()
 
         val scrollCallback = CenterScrollLayoutCallback(listOf(
-                ScaleListener(),
-                ColorScaleListener(Color.WHITE, Color.GRAY) {
-                    (it.tag as ProjectViewHolder).nameView
-                }
+            ScaleListener(),
+            ColorScaleListener(Color.WHITE, Color.GRAY) {
+                (it.tag as ProjectViewHolder).nameView
+            }
         ))
 
         val adapter = ProjectsAdapter(emptyList()) {

@@ -5,7 +5,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
-import android.support.wear.ambient.AmbientMode
+import android.support.wear.ambient.AmbientModeSupport
 import android.support.wear.widget.WearableLinearLayoutManager
 import android.support.wear.widget.WearableRecyclerView
 import android.view.View
@@ -42,7 +42,7 @@ private const val REQUEST_CODE_ADD_TASK = 1
 class TasksActivity : WearableActivity() {
 
     init {
-        ambientCallbackDelegate = object : AmbientMode.AmbientCallback() {
+        ambientCallbackDelegate = object : AmbientModeSupport.AmbientCallback() {
             override fun onExitAmbient() {
                 super.onExitAmbient()
                 rootView.setBackgroundResource(R.color.activity_background)
