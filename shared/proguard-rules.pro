@@ -21,6 +21,8 @@
 #-renamesourcefileattribute SourceFile
 
 -dontobfuscate
+-keeppackagenames
+
 -keep class com.cbruegg.agendafortodoist.MainActivity
 -keep class android.arch.lifecycle.ProcessLifecycleOwnerInitializer
 -keepattributes kotlinx.serialization.**
@@ -31,6 +33,15 @@
 
 -keepclasseswithmembers class okio.BufferedSource {
     java.io.InputStream inputStream(...);
+}
+
+-keepclasseswithmembers class okio.Sink {
+    java.io.OutputStream outputStream(...);
+}
+
+-keepclasseswithmembers class okio.Okio {
+    okio.Sink sink(...);
+    okio.Source source(...);
 }
 
 -keepattributes *Annotation*, InnerClasses

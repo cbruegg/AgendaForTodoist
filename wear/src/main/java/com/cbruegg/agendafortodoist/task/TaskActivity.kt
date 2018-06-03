@@ -84,7 +84,7 @@ class TaskActivity : WearableActivity() {
         }
         viewModel.isCompleted.observe(this) {
             setResult(if (it) RESULT_COMPLETED else RESULT_UNCOMPLETED, Intent().apply {
-                putExtra(RESULT_INTENT_EXTRA_TASK_ID, taskId)
+                putExtra(RESULT_INTENT_EXTRA_TASK_ID, task.id)
             })
         }
         contentView.text = task.content
