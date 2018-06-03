@@ -179,11 +179,4 @@ internal data class AddTaskUpdateStep(val newTask: NewTask, val requestId: Int) 
     override fun applyTo(tasks: List<Task>) = tasks + newTask.toTask()
 
     override fun getRequestId() = requestId
-
-    private fun NewTask.toTask() = Task(
-        id = virtualId,
-        content = content,
-        isCompleted = false,
-        projectId = projectId
-    )
 }

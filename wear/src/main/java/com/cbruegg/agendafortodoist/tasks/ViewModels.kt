@@ -41,6 +41,10 @@ class TasksViewModel(
         _taskViewModels.data.firstOrNull { it.task.id == taskId }?.notifyCompletedStateChangedExternally(isCompleted)
     }
 
+    fun notifyTaskAdded(task: Task) {
+        _taskViewModels.data += TaskViewModel(task, requestIdGenerator, todoist)
+    }
+
     private fun reload() {
         if (!settings.showedCompleteTaskIntro) {
             alert(R.string.double_tap_to_complete_task)

@@ -11,6 +11,7 @@ import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.app
 import com.cbruegg.agendafortodoist.auth.AuthActivity
 import com.cbruegg.agendafortodoist.shared.todoist.repo.NewTask
+import com.cbruegg.agendafortodoist.shared.todoist.repo.Task
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistNetworkException
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepoException
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistServiceException
@@ -24,6 +25,9 @@ fun newAddTaskActivityIntent(context: Context, projectId: Long) =
     Intent(context, AddTaskActivity::class.java).apply {
         putExtra(EXTRA_PROJECT_ID, projectId)
     }
+
+private const val RESULT_TASK = "task"
+val Intent.addTaskActivityResult get() = getParcelableExtra<Task?>(RESULT_TASK)
 
 class AddTaskActivity : WearableActivity() {
 
@@ -61,7 +65,9 @@ class AddTaskActivity : WearableActivity() {
             try {
                 val requestId = UniqueRequestIdGenerator.nextRequestId()
                 val projectId = intent.getLongExtra(EXTRA_PROJECT_ID, -1)
-                app.netComponent.todoistRepo().addTask(requestId, NewTask(spokenText, projectId)).await()
+                val newTask = NewTask(spokenText, projectId)
+                setResult(newTask.toTask())
+                app.netComponent.todoistRepo().addTask(requestId, newTask).await()
             } catch (e: TodoistRepoException) {
                 e.printStackTrace()
                 when (e) {
@@ -85,8 +91,18 @@ class AddTaskActivity : WearableActivity() {
         }
     }
 
+    private fun setResult(task: Task?) {
+        val intent = Intent().apply { extras.putParcelable(RESULT_TASK, task) }
+        if (task != null) {
+            setResult(Activity.RESULT_OK, intent)
+        } else {
+            setResult(Activity.RESULT_CANCELED, intent)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setResult(null)
 
         displaySpeechRecognizer()
     }

@@ -14,9 +14,11 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import com.cbruegg.agendafortodoist.R
 import com.cbruegg.agendafortodoist.WearableActivity
+import com.cbruegg.agendafortodoist.addtask.addTaskActivityResult
 import com.cbruegg.agendafortodoist.addtask.newAddTaskActivityIntent
 import com.cbruegg.agendafortodoist.app
 import com.cbruegg.agendafortodoist.auth.AuthActivity
+import com.cbruegg.agendafortodoist.shared.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.task.RESULT_COMPLETED
 import com.cbruegg.agendafortodoist.task.RESULT_INTENT_EXTRA_TASK_ID
 import com.cbruegg.agendafortodoist.task.RESULT_UNCOMPLETED
@@ -24,18 +26,18 @@ import com.cbruegg.agendafortodoist.task.newTaskActivityIntent
 import com.cbruegg.agendafortodoist.util.CenterScrollLayoutCallback
 import com.cbruegg.agendafortodoist.util.ColorScaleListener
 import com.cbruegg.agendafortodoist.util.ScaleListener
-import com.cbruegg.agendafortodoist.shared.util.UniqueRequestIdGenerator
 import com.cbruegg.agendafortodoist.util.observe
 import com.cbruegg.agendafortodoist.util.viewModel
 
 private const val EXTRA_PROJECT_ID = "project_id"
 
 fun newTasksActivityIntent(context: Context, projectId: Long) =
-        Intent(context, TasksActivity::class.java).apply {
-            putExtra(EXTRA_PROJECT_ID, projectId)
-        }
+    Intent(context, TasksActivity::class.java).apply {
+        putExtra(EXTRA_PROJECT_ID, projectId)
+    }
 
 private const val REQUEST_CODE_TASK = 0
+private const val REQUEST_CODE_ADD_TASK = 1
 
 class TasksActivity : WearableActivity() {
 
@@ -64,10 +66,10 @@ class TasksActivity : WearableActivity() {
         val projectId = intent.extras.getLong(EXTRA_PROJECT_ID)
 
         val scrollCallback = CenterScrollLayoutCallback(listOf(
-                ScaleListener(),
-                ColorScaleListener(Color.WHITE, Color.GRAY) {
-                    (it.tag as TaskViewHolder).nameView
-                }
+            ScaleListener(),
+            ColorScaleListener(Color.WHITE, Color.GRAY) {
+                (it.tag as TaskViewHolder).nameView
+            }
         ))
 
         val adapter = TasksAdapter(emptyList(), this) {
@@ -82,7 +84,7 @@ class TasksActivity : WearableActivity() {
         tasksList.layoutManager = WearableLinearLayoutManager(this, scrollCallback)
 
         addTasksButton.setOnClickListener {
-            startActivity(newAddTaskActivityIntent(this, projectId))
+            startActivityForResult(newAddTaskActivityIntent(this, projectId), REQUEST_CODE_ADD_TASK)
         }
 
         viewModel = viewModel {
@@ -108,9 +110,9 @@ class TasksActivity : WearableActivity() {
         }
         viewModel.alert = {
             AlertDialog.Builder(this)
-                    .setMessage(it)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show()
+                .setMessage(it)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
         }
 
         viewModel.onCreate()
@@ -119,14 +121,19 @@ class TasksActivity : WearableActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == REQUEST_CODE_TASK) {
-            val taskId = data!!.getLongExtra(RESULT_INTENT_EXTRA_TASK_ID, -1)
-            val isCompleted = when (resultCode) {
-                RESULT_COMPLETED -> true
-                RESULT_UNCOMPLETED -> false
-                else -> throw IllegalArgumentException("Unexpected result code!")
+        when (requestCode) {
+            REQUEST_CODE_TASK -> {
+                val taskId = data!!.getLongExtra(RESULT_INTENT_EXTRA_TASK_ID, -1)
+                val isCompleted = when (resultCode) {
+                    RESULT_COMPLETED -> true
+                    RESULT_UNCOMPLETED -> false
+                    else -> throw IllegalArgumentException("Unexpected result code!")
+                }
+                viewModel.notifyCompletedStateChanged(taskId, isCompleted)
             }
-            viewModel.notifyCompletedStateChanged(taskId, isCompleted)
+            REQUEST_CODE_ADD_TASK -> {
+                data!!.addTaskActivityResult?.let { viewModel.notifyTaskAdded(it) }
+            }
         }
     }
 

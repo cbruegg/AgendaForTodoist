@@ -64,4 +64,11 @@ data class NewTask(
         content = content,
         projectId = projectId
     )
+
+    fun toTask() = Task(
+        id = virtualId,
+        content = content,
+        isCompleted = false,
+        projectId = projectId
+    )
 }
