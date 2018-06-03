@@ -1,8 +1,6 @@
 package com.cbruegg.agendafortodoist.shared.todoist.repo.caching
 
 import android.content.Context
-import kotlinx.coroutines.experimental.sync.Mutex
-import kotlinx.coroutines.experimental.sync.withLock
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -21,12 +19,8 @@ constructor(context: Context) : VirtualIdToRealIdPersister {
     private val map = context.getSharedPreferences(MAP_FILE, Context.MODE_PRIVATE)
     private val creationDates = context.getSharedPreferences(CREATION_DATE_FILE, Context.MODE_PRIVATE)
 
-    private val accessLock = Mutex()
-
     private var virtualIdsToRealIds: Map<Long, Long>
         get() {
-            check(accessLock.isLocked) { "Must lock before using this property!" }
-
             val time = System.currentTimeMillis()
             val mapEditor = map.edit()
             val creationDateEditor = creationDates.edit()
@@ -40,8 +34,6 @@ constructor(context: Context) : VirtualIdToRealIdPersister {
             return map.all.map { (key, value) -> (key.toLong()) to (value as Long) }.toMap()
         }
         set(value) {
-            check(accessLock.isLocked) { "Must lock before using this property!" }
-
             val mapEditor = map.edit()
             val creationDateEditor = creationDates.edit()
             for ((virtualId, realId) in value) {
@@ -56,11 +48,5 @@ constructor(context: Context) : VirtualIdToRealIdPersister {
             creationDateEditor.apply()
         }
 
-    override suspend fun <R> inTransactionWithReturn(f: suspend (Map<Long, Long>) -> Pair<Map<Long, Long>, R>): R {
-        return accessLock.withLock {
-            val (newVirtualIdsToRealIds, r) = f(virtualIdsToRealIds)
-            virtualIdsToRealIds = newVirtualIdsToRealIds
-            r
-        }
-    }
+    override val lockedProperty = LockProtectedVar(this::virtualIdsToRealIds)
 }

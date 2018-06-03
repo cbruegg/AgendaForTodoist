@@ -6,8 +6,6 @@ import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistNetworkException
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepoException
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistServiceException
 import com.cbruegg.agendafortodoist.shared.util.retry
-import kotlinx.coroutines.experimental.sync.Mutex
-import kotlinx.coroutines.experimental.sync.withLock
 import kotlinx.serialization.json.JSON
 import retrofit2.HttpException
 import java.io.IOException
@@ -28,33 +26,22 @@ internal class SharedPreferencesUpdateStepsPersister
     private val defaultSerializedValue = JSON.stringify(UpdateSteps.initial)
 
     private var updateSteps: UpdateSteps
-        get() {
-            check(accessLock.isLocked) { "Must lock before using this property!" }
-            return JSON.parse(prefs.getString(KEY_STEPS, defaultSerializedValue))
-        }
+        get() = JSON.parse(prefs.getString(KEY_STEPS, defaultSerializedValue))
         set(value) {
-            check(accessLock.isLocked) { "Must lock before using this property!" }
             prefs.edit().putString(KEY_STEPS, JSON.stringify(value)).apply()
         }
 
-    private val accessLock: Mutex = Mutex()
+    override val lockedProperty = LockProtectedVar(this::updateSteps)
 
-    override suspend fun <R> inTransactionWithReturn(f: suspend (UpdateSteps) -> Pair<UpdateSteps, R>): R {
-        return accessLock.withLock {
-            val (newUpdateSteps, r) = f(updateSteps)
-            updateSteps = newUpdateSteps
-            r
-        }
-    }
 }
 
 /**
  * @throws [TodoistRepoException]
  */
 internal suspend fun UpdateStepsPersister.processQueue(todoist: TodoistApi, virtualIdToRealIdPersister: VirtualIdToRealIdPersister) {
-    inTransaction { updateSteps ->
+    lockedProperty.inTransaction { updateSteps ->
         errorHandled {
-            virtualIdToRealIdPersister.inTransaction { virtualIdsToRealIds ->
+            virtualIdToRealIdPersister.lockedProperty.inTransaction { virtualIdsToRealIds ->
                 virtualIdsToRealIds + updateSteps.sendTo(todoist).virtualToRealIds
             }
         }

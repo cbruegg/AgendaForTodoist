@@ -25,7 +25,7 @@ internal class CachingTodoistRepo @Inject constructor(
 ) : TodoistRepo {
 
     private suspend fun Task.insertRealIdIfNeeded(): Task {
-        return virtualIdToReadIdPersister.readOnly { virtualIdsToRealIds ->
+        return virtualIdToReadIdPersister.lockedProperty.readOnly { virtualIdsToRealIds ->
             val realId = virtualIdsToRealIds[id]
             if (realId != null) copy(id = realId) else this
         }
@@ -33,6 +33,7 @@ internal class CachingTodoistRepo @Inject constructor(
 
     private suspend fun processQueue() {
         try {
+            updateStepsPersister.lockedProperty.readOnly { it.sendTo(cache) }
             updateStepsPersister.processQueue(todoist, virtualIdToReadIdPersister)
         } catch (e: TodoistRepoException) {
             scheduleSendJob()
@@ -69,25 +70,25 @@ internal class CachingTodoistRepo @Inject constructor(
         } catch (e: TodoistRepoException) {
             projectId?.let { cache.retrieveTasks(it) } ?: throw e
         }
-        updateStepsPersister.readOnly { it.applyTo(tasks) }
+        updateStepsPersister.lockedProperty.readOnly { it.applyTo(tasks) }
     }
 
     override fun closeTask(task: Task, requestId: Int) = async {
-        updateStepsPersister.inTransaction {
+        updateStepsPersister.lockedProperty.inTransaction {
             it + CloseTaskUpdateStep(task.insertRealIdIfNeeded(), requestId)
         }
         processQueue()
     }
 
     override fun reopenTask(task: Task, requestId: Int) = async {
-        updateStepsPersister.inTransaction {
+        updateStepsPersister.lockedProperty.inTransaction {
             it + ReopenTaskUpdateStep(task.insertRealIdIfNeeded(), requestId)
         }
         processQueue()
     }
 
     override fun addTask(requestId: Int, task: NewTask) = async {
-        updateStepsPersister.inTransaction {
+        updateStepsPersister.lockedProperty.inTransaction {
             it + AddTaskUpdateStep(task, requestId)
         }
         processQueue()

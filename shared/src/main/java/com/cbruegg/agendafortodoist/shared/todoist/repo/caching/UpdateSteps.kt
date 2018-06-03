@@ -20,6 +20,7 @@ internal data class SendResult(val virtualToRealIds: Map<Long, Long> = emptyMap(
 @Serializable
 internal sealed class UpdateStep {
     abstract suspend fun sendTo(todoist: TodoistApi): SendResult
+    abstract suspend fun sendTo(cache: Cache)
     abstract fun applyTo(tasks: List<Task>): List<Task>
     abstract fun getRequestId(): Int? // This has to be a function, otherwise the compiler produces incorrect bytecode
 }
@@ -53,6 +54,10 @@ internal class UpdateSteps private constructor(private val steps: List<UpdateSte
             .map { it -> it.sendTo(todoist) }
             .fold(emptyMap<Long, Long>()) { acc, sendResult -> acc + sendResult.virtualToRealIds }
         return SendResult(virtualToRealIds)
+    }
+
+    override suspend fun sendTo(cache: Cache) {
+        steps.forEach { it.sendTo(cache) }
     }
 
     override fun applyTo(tasks: List<Task>) = steps.fold(tasks) { acc, updateStep -> updateStep.applyTo(acc) }
@@ -123,6 +128,12 @@ internal data class CloseTaskUpdateStep(val task: Task, val requestId: Int) : Up
         return SendResult()
     }
 
+    override suspend fun sendTo(cache: Cache) {
+        cache.retrieveTasks(task.projectId)
+            ?.map { if (it.id == task.id) it.copy(isCompleted = true) else it }
+            ?.let { cache.cacheTasks(task.projectId, it) }
+    }
+
     override fun applyTo(tasks: List<Task>) = tasks.map {
         if (it.id == task.id) it.copy(isCompleted = true) else it
     }
@@ -136,6 +147,12 @@ internal data class ReopenTaskUpdateStep(val task: Task, val requestId: Int) : U
         val resp = todoist.reopenTask(task.id, requestId).awaitResponse()
         if (resp.code() !in 200..299) throw HttpException(resp)
         return SendResult()
+    }
+
+    override suspend fun sendTo(cache: Cache) {
+        cache.retrieveTasks(task.projectId)
+            ?.map { if (it.id == task.id) it.copy(isCompleted = false) else it }
+            ?.let { cache.cacheTasks(task.projectId, it) }
     }
 
     override fun applyTo(tasks: List<Task>) = tasks.map {
@@ -153,12 +170,20 @@ internal data class AddTaskUpdateStep(val newTask: NewTask, val requestId: Int) 
         return SendResult(mapOf(newTask.virtualId to resp.body()!!.id))
     }
 
-    override fun applyTo(tasks: List<Task>) = tasks + Task(
-        id = newTask.virtualId,
-        content = newTask.content,
-        isCompleted = false,
-        projectId = newTask.projectId
-    )
+    override suspend fun sendTo(cache: Cache) {
+        cache.retrieveTasks(newTask.projectId)
+            ?.plus(newTask.toTask())
+            ?.let { cache.cacheTasks(newTask.projectId, it) }
+    }
+
+    override fun applyTo(tasks: List<Task>) = tasks + newTask.toTask()
 
     override fun getRequestId() = requestId
+
+    private fun NewTask.toTask() = Task(
+        id = virtualId,
+        content = content,
+        isCompleted = false,
+        projectId = projectId
+    )
 }
