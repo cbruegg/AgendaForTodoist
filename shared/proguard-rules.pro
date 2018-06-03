@@ -25,6 +25,14 @@
 -keep class android.arch.lifecycle.ProcessLifecycleOwnerInitializer
 -keepattributes kotlinx.serialization.**
 
+-keepclasseswithmembers class okhttp3.Headers {
+    java.util.Set names(...);
+}
+
+-keepclasseswithmembers class okio.BufferedSource {
+    java.io.InputStream inputStream(...);
+}
+
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.SerializationKt
 -keep,includedescriptorclasses class com.cbruegg.agendafortodoist.**$$serializer { *; }
