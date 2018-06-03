@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.wearable.phone.PhoneDeviceType
 import android.view.View
+import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
 import com.cbruegg.agendafortodoist.R
@@ -39,6 +40,7 @@ class AuthActivity : WearableActivity() {
         launch(UI) {
             val requestId = UUID.randomUUID().toString()
             val shortUrl = try {
+                window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
                 authService.requestRedirectShortUrl(requestId).await().string()
             } catch (e: HttpException) {
                 e.printStackTrace()
@@ -48,6 +50,8 @@ class AuthActivity : WearableActivity() {
                 e.printStackTrace()
                 message.text = getString(R.string.network_error)
                 return@launch
+            } finally {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
             }
 
             message.text = getString(R.string.auth_visit_template, shortUrl)
@@ -81,8 +85,8 @@ class AuthActivity : WearableActivity() {
 
     private fun sendUrlToPhone(url: String) {
         val intent = Intent(ACTION_VIEW)
-                .addCategory(Intent.CATEGORY_BROWSABLE)
-                .setData(Uri.parse(url))
+            .addCategory(Intent.CATEGORY_BROWSABLE)
+            .setData(Uri.parse(url))
 
         RemoteIntent.startRemoteActivity(this@AuthActivity, intent, null)
     }
