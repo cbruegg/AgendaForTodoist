@@ -33,6 +33,12 @@ androidExtensions {
     experimental = true
 }
 
+kotlin {
+    experimental {
+        coroutines 'enable'
+    }
+}
+
 repositories {
     maven { url "https://kotlin.bintray.com/kotlinx" }
 }
