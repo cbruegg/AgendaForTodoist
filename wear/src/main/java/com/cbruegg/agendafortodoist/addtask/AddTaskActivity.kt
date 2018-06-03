@@ -92,7 +92,7 @@ class AddTaskActivity : WearableActivity() {
     }
 
     private fun setResult(task: Task?) {
-        val intent = Intent().apply { extras.putParcelable(RESULT_TASK, task) }
+        val intent = Intent().apply { putExtra(RESULT_TASK, task) }
         if (task != null) {
             setResult(Activity.RESULT_OK, intent)
         } else {

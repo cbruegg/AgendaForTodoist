@@ -132,7 +132,7 @@ class TasksActivity : WearableActivity() {
                 viewModel.notifyCompletedStateChanged(taskId, isCompleted)
             }
             REQUEST_CODE_ADD_TASK -> {
-                data!!.addTaskActivityResult?.let { viewModel.notifyTaskAdded(it) }
+                data?.addTaskActivityResult?.let { viewModel.notifyTaskAdded(it) }
             }
         }
     }

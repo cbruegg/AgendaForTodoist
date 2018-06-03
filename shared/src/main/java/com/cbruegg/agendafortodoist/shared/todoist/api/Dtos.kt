@@ -19,7 +19,7 @@ internal data class TaskDto(
         @Json(name = "order") val order: Int,
         @Json(name = "indent") val indent: Int,
         @Json(name = "priority") val priority: Int,
-        @Json(name = "url") val url: String,
+        @Json(name = "url") val url: String?,
         @Json(name = "comment_count") val commentCount: Int
 )
 
