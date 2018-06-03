@@ -48,5 +48,5 @@ constructor(context: Context) : VirtualIdToRealIdPersister {
             creationDateEditor.apply()
         }
 
-    override val lockedProperty = LockProtectedVar(this::virtualIdsToRealIds)
+    override val lockedProperty = LockProtectedVar({ virtualIdsToRealIds }, { virtualIdsToRealIds = it })
 }

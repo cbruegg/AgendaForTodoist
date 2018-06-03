@@ -31,7 +31,7 @@ internal class SharedPreferencesUpdateStepsPersister
             prefs.edit().putString(KEY_STEPS, JSON.stringify(value)).apply()
         }
 
-    override val lockedProperty = LockProtectedVar(this::updateSteps)
+    override val lockedProperty = LockProtectedVar({ updateSteps }, { updateSteps = it })
 
 }
 
