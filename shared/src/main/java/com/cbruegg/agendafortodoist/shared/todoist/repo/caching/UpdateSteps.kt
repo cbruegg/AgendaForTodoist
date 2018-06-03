@@ -1,5 +1,6 @@
 package com.cbruegg.agendafortodoist.shared.todoist.repo.caching
 
+import android.util.Log
 import com.cbruegg.agendafortodoist.shared.todoist.api.TodoistApi
 import com.cbruegg.agendafortodoist.shared.todoist.repo.NewTask
 import com.cbruegg.agendafortodoist.shared.todoist.repo.Task
@@ -13,6 +14,7 @@ import kotlinx.serialization.Serializer
 import kotlinx.serialization.internal.SerialClassDescImpl
 import kotlinx.serialization.list
 import retrofit2.HttpException
+import retrofit2.Response
 import ru.gildor.coroutines.retrofit.awaitResponse
 
 internal data class SendResult(val virtualToRealIds: Map<Long, Long> = emptyMap())
@@ -124,8 +126,7 @@ internal class UpdateSteps private constructor(private val steps: List<UpdateSte
 internal data class CloseTaskUpdateStep(val task: Task, val requestId: Int) : UpdateStep() {
     override suspend fun sendTo(todoist: TodoistApi): SendResult {
         val resp = todoist.closeTask(task.id, requestId).awaitResponse()
-        if (resp.code() !in 200..299) throw HttpException(resp)
-        return SendResult()
+        return resp.handle { SendResult() }
     }
 
     override suspend fun sendTo(cache: Cache) {
@@ -145,8 +146,7 @@ internal data class CloseTaskUpdateStep(val task: Task, val requestId: Int) : Up
 internal data class ReopenTaskUpdateStep(val task: Task, val requestId: Int) : UpdateStep() {
     override suspend fun sendTo(todoist: TodoistApi): SendResult {
         val resp = todoist.reopenTask(task.id, requestId).awaitResponse()
-        if (resp.code() !in 200..299) throw HttpException(resp)
-        return SendResult()
+        return resp.handle { SendResult() }
     }
 
     override suspend fun sendTo(cache: Cache) {
@@ -166,8 +166,7 @@ internal data class ReopenTaskUpdateStep(val task: Task, val requestId: Int) : U
 internal data class AddTaskUpdateStep(val newTask: NewTask, val requestId: Int) : UpdateStep() {
     override suspend fun sendTo(todoist: TodoistApi): SendResult {
         val resp = todoist.addTask(requestId, newTask.toNewTaskDto()).awaitResponse()
-        if (resp.code() !in 200..299) throw HttpException(resp)
-        return SendResult(mapOf(newTask.virtualId to resp.body()!!.id))
+        return resp.handle { SendResult(mapOf(newTask.virtualId to it.id)) }
     }
 
     override suspend fun sendTo(cache: Cache) {
@@ -180,3 +179,15 @@ internal data class AddTaskUpdateStep(val newTask: NewTask, val requestId: Int) 
 
     override fun getRequestId() = requestId
 }
+
+private inline fun <T> Response<T>.handle(resultHandler: (T) -> SendResult): SendResult =
+    if (code() !in 200..299) {
+        Log.e("HttpResponse", "Received HTTP error with code ${code()}: ${errorBody()?.string()}")
+        if (code() in 400..499) {
+            SendResult()
+        } else {
+            throw HttpException(this)
+        }
+    } else {
+        resultHandler(body()!!)
+    }
