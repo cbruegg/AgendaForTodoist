@@ -6,6 +6,7 @@ import com.cbruegg.agendafortodoist.shared.todoist.api.todoist
 import com.cbruegg.agendafortodoist.shared.todoist.repo.TodoistRepo
 import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.CachingTodoistRepo
 import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.SendJobCreator
+import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.SharedPreferencesCache
 import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.SharedPreferencesUpdateStepsPersister
 import com.cbruegg.agendafortodoist.shared.todoist.repo.caching.SharedPreferencesVirtualIdToReadIdPersister
 import com.evernote.android.job.JobManager
@@ -16,7 +17,8 @@ fun initSharedLibrary(app: Application, accessTokenGetter: AccessTokenGetter): S
     val todoist = todoist(accessTokenGetter)
     val updateStepsPersister = SharedPreferencesUpdateStepsPersister(app)
     val virtualIdToReadIdPersister = SharedPreferencesVirtualIdToReadIdPersister(app)
-    val cachingTodoistRepo = CachingTodoistRepo(todoist, updateStepsPersister, virtualIdToReadIdPersister)
+    val cache = SharedPreferencesCache(app)
+    val cachingTodoistRepo = CachingTodoistRepo(todoist, updateStepsPersister, virtualIdToReadIdPersister, cache)
 
     JobManager.create(app).addJobCreator(SendJobCreator(todoist, updateStepsPersister, virtualIdToReadIdPersister))
 

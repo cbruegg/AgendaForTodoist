@@ -7,7 +7,7 @@ import java.io.IOException
 interface TodoistRepo {
     fun projects(): Deferred<List<Project>>
 
-    fun tasks(projectId: Long? = null, labelId: Long? = null): Deferred<List<Task>>
+    fun tasks(projectId: Long? = null): Deferred<List<Task>>
 
     fun closeTask(task: Task, requestId: Int): Deferred<Unit>
 

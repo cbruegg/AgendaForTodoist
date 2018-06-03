@@ -57,7 +57,7 @@ internal interface TodoistApi {
     fun projects(): Call<List<ProjectDto>>
 
     @GET("tasks")
-    fun tasks(@Query("project_id") projectId: Long? = null, @Query("label_id") labelId: Long? = null): Call<List<TaskDto>>
+    fun tasks(@Query("project_id") projectId: Long? = null): Call<List<TaskDto>>
 
     @POST("tasks/{id}/close")
     fun closeTask(@Path("id") taskId: Long, @Header(REQ_ID_HEADER) requestId: Int): Call<Void>

@@ -20,10 +20,9 @@ import javax.inject.Singleton
 internal class CachingTodoistRepo @Inject constructor(
     private val todoist: TodoistApi,
     private val updateStepsPersister: UpdateStepsPersister,
-    private val virtualIdToReadIdPersister: VirtualIdToRealIdPersister
+    private val virtualIdToReadIdPersister: VirtualIdToRealIdPersister,
+    private val cache: Cache
 ) : TodoistRepo {
-
-    // TODO Make this caching
 
     private suspend fun Task.insertRealIdIfNeeded(): Task {
         return virtualIdToReadIdPersister.readOnly { virtualIdsToRealIds ->
@@ -41,18 +40,35 @@ internal class CachingTodoistRepo @Inject constructor(
     }
 
     override fun projects() = async {
-        errorHandled {
-            todoist.projects().await().map { Project(it) }
-            // TODO Catch exception and return from cache
+        try {
+            errorHandled {
+                todoist
+                    .projects()
+                    .await()
+                    .map { Project(it) }
+                    .also { cache.cacheProjects(it) }
+            }
+        } catch (e: TodoistRepoException) {
+            cache.retrieveProjects() ?: throw e
         }
     }
 
-    override fun tasks(projectId: Long?, labelId: Long?) = async {
-        val tasks = errorHandled {
-            // TODO Cached?
-            todoist.tasks(projectId, labelId).await().map { Task(it) }
+    override fun tasks(projectId: Long?) = async {
+        val tasks = try {
+            errorHandled {
+                todoist
+                    .tasks(projectId)
+                    .await()
+                    .map { Task(it) }
+                    .also {
+                        if (projectId != null) {
+                            cache.cacheTasks(projectId, it)
+                        }
+                    }
+            }
+        } catch (e: TodoistRepoException) {
+            projectId?.let { cache.retrieveTasks(it) } ?: throw e
         }
-        // TODO Catch exception and return from cache
         updateStepsPersister.readOnly { it.applyTo(tasks) }
     }
 
